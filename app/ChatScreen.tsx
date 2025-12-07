@@ -9,12 +9,12 @@ import {
     View,
 } from 'react-native';
 import { type Message, useRAG } from 'react-native-rag';
-import { COLORS } from '../constants/colors';
-import { useRAGContext } from '../context/RAGContext';
-import { ChatInput } from './ChatInput';
-import { MessagesList } from './MessagesList';
+import { ChatInput } from './components/ChatInput';
+import { MessagesList } from './components/MessagesList';
+import { COLORS } from './constants/colors';
+import { useRAGContext } from './context/RAGContext';
 
-export function ChatScreen() {
+export default function ChatScreen() {
   const { vectorStore, llm, isReady } = useRAGContext();
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);

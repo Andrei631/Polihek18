@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { COLORS } from '../constants/colors';
-import { useRAGContext } from '../context/RAGContext';
-import { MANUALS_DATA, Manual } from '../data/manuals';
+import { COLORS } from './constants/colors';
+import { useRAGContext } from './context/RAGContext';
+import { MANUALS_DATA, Manual } from './data/manuals';
 
 interface SurvivalManualsProps {
   onSelectManual?: (manual: Manual) => void;
 }
 
-export function SurvivalManuals({ onSelectManual }: SurvivalManualsProps) {
+export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps) {
   const { vectorStore } = useRAGContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredData, setFilteredData] = useState(MANUALS_DATA);

@@ -1,10 +1,20 @@
-import { Stack } from "expo-router";
-import { RAGProvider } from "./context/RAGContext";
+// app/_layout.tsx
+import { Stack } from 'expo-router';
+import { StatusBar } from 'react-native';
+import { COLORS } from '../constants/theme';
 
-export default function RootLayout() {
+export default function Layout() {
   return (
-    <RAGProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </RAGProvider>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="map" />
+        <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="SurvivalManuals" />
+        <Stack.Screen name="ChatScreen" />
+      </Stack>
+    </>
   );
 }
