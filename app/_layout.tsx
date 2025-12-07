@@ -1,5 +1,10 @@
 import { Stack } from "expo-router";
+import { RAGProvider } from "./context/RAGContext";
 
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <RAGProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </RAGProvider>
+  );
 }
