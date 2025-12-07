@@ -8,6 +8,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Message, useRAG } from 'react-native-rag';
 import { ChatInput } from './components/ChatInput';
 import { MessagesList } from './components/MessagesList';
@@ -15,7 +16,7 @@ import { COLORS } from './constants/colors';
 import { useRAGContext } from './context/RAGContext';
 
 export default function ChatScreen() {
-  const { vectorStore, llm, isReady } = useRAGContext();
+  const { vectorStore, llm, isReady, progress } = useRAGContext();
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -63,7 +64,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.logoCircle}>
           <Ionicons name="shield" size={40} color={COLORS.accent} />
@@ -86,6 +87,17 @@ export default function ChatScreen() {
             <Text style={styles.loadingText}>
               Loading Models...
             </Text>
+            <Text style={styles.progressText}>
+              LLM Download Progress: {(progress.llm * 100).toFixed(2)}%
+            </Text>
+            <Text style={styles.progressText}>
+              Embeddings Download Progress: {(progress.embeddings * 100).toFixed(2)}%
+            </Text>
+            <Text style={styles.statusText}>
+              {progress.llmDownload < 1
+                ? 'Downloading LLM model...'
+                : 'Initializing models...'}
+            </Text>
           </View>
         ) : (
           <View style={styles.emptyStateContainer}>
@@ -95,15 +107,16 @@ export default function ChatScreen() {
             </Text>
           </View>
         )}
-        <ChatInput
-          message={message}
-          onMessageChange={setMessage}
-          onMessageSubmit={handleMessageSubmit}
-          isGenerating={rag.isGenerating || isSearching}
-          isReady={isReady}
-        />
-      </KeyboardAvoidingView>
-    </View>
+      <ChatInput
+        message={message}
+        onMessageChange={setMessage}
+        onMessageSubmit={handleMessageSubmit}
+        isGenerating={rag.isGenerating || isSearching}
+        isReady={isReady}
+      />
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+
   );
 }
 

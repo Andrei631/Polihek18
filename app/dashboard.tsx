@@ -20,10 +20,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SentinelCard } from '../components/SentinelCard';
 import { COLORS } from '../constants/theme';
+import { useRAGContext } from './context/RAGContext';
 
 export default function Dashboard() {
   const router = useRouter();
   const { isConnected } = useNetInfo();
+  const { isDownloading: isModelDownloading, progress: modelProgress } = useRAGContext();
   
   const isPremium = true; 
 
@@ -209,6 +211,14 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {isModelDownloading && (
+        <View style={styles.modelDownloadContainer}>
+          <Text style={styles.modelDownloadText}>Downloading AI Models... {Math.round(((modelProgress.llm + modelProgress.embeddings) / 2) * 100)}%</Text>
+          <View style={styles.progressBarBackground}>
+            <View style={[styles.progressBarFill, { width: `${((modelProgress.llm + modelProgress.embeddings) / 2) * 100}%` }]} />
+          </View>
+        </View>
+      )}
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>DASHBOARD</Text>
@@ -242,6 +252,15 @@ export default function Dashboard() {
           isLocked={false}
           isPremium={true}
           onPress={() => router.push('/ChatScreen')}
+        />
+
+        <SentinelCard
+          title="Secret Vault"
+          subtitle="Encrypted documents. Stored locally on-device."
+          icon="lock-closed-outline" 
+          isLocked={false}
+          isPremium={true} 
+          onPress={() => router.push('/secretvault')} 
         />
       </View>
 
@@ -349,6 +368,27 @@ const styles = StyleSheet.create({
   confirmBtn: { backgroundColor: COLORS.accent },
   cancelText: { color: '#FFF', fontWeight: 'bold' },
   confirmText: { color: '#FFF', fontWeight: 'bold' },
-  downloadingContainer: { alignItems: 'center', paddingVertical: 10 },
+    downloadingContainer: { alignItems: 'center', paddingVertical: 10 },
+  modelDownloadContainer: {
+    paddingHorizontal: 0,
+    paddingBottom: 10,
+    marginBottom: 10,
+  },
+  modelDownloadText: {
+    color: COLORS.success,
+    fontSize: 12,
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: COLORS.card,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: COLORS.success,
+  },
   downloadingText: { color: COLORS.accent, marginTop: 10, fontWeight: 'bold' }
 });

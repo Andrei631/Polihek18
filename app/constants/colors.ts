@@ -2,6 +2,7 @@ export const COLORS = {
   background: '#000000', // Pitch black
   textPrimary: '#FFFFFF', // Pure white
   textSecondary: '#A0A0A0', // Light grey
+  secondary: '#64748B', // Slate 500
   accent: '#38BDF8', // Sky 400
   inputBg: '#121212', // Very dark grey
   border: '#333333', // Dark grey

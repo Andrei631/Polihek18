@@ -3,14 +3,13 @@ import {
   Camera,
   CircleLayer,
   MapView,
-  PointAnnotation,
   ShapeSource,
   UserLocation,
 } from "@maplibre/maplibre-react-native";
 import firestore from '@react-native-firebase/firestore';
 import * as Location from "expo-location";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants/theme";
@@ -30,82 +29,211 @@ export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
   const [hazardGeoJSON, setHazardGeoJSON] = useState<any>({ type: 'FeatureCollection', features: [] });
+  const [headingMode, setHeadingMode] = useState(false); // Track if compass heading is active
   
   // Ref for initialization logic
   const hasCentered = useRef(false);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<any>(null);
   
   // Animation for Compass
   const mapHeading = useRef(new Animated.Value(0)).current;
+  const mapHeadingVal = useRef(0); // Cumulative heading value
+  const smoothedHeading = useRef(0); // Exponential smoothing buffer
+  const SMOOTHING_FACTOR = 0.3; // Lower = more smoothing (0-1)
 
-  // 1. Get User Location & Heading Permissions
+  const updateCompass = useCallback((heading: number) => {
+      // Normalize to 0-360
+      const normalized = ((heading % 360) + 360) % 360;
+      
+      // Apply exponential smoothing to reduce jitter
+      let diff = normalized - smoothedHeading.current;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      smoothedHeading.current += diff * SMOOTHING_FACTOR;
+      
+      // Calculate shortest rotation for cumulative heading
+      const current = mapHeadingVal.current;
+      const currentMod = ((current % 360) + 360) % 360;
+      const smoothedNorm = ((smoothedHeading.current % 360) + 360) % 360;
+      
+      let cumulativeDiff = smoothedNorm - currentMod;
+      if (cumulativeDiff > 180) cumulativeDiff -= 360;
+      if (cumulativeDiff < -180) cumulativeDiff += 360;
+      
+      mapHeadingVal.current += cumulativeDiff;
+      
+      Animated.timing(mapHeading, {
+        toValue: mapHeadingVal.current,
+        duration: 150, // Slightly longer for smooth animation
+        useNativeDriver: true,
+      }).start();
+  }, []);
+
+  // 1. Watch Heading for smooth compass updates
   useEffect(() => {
-    (async () => {
+    let subscription: { remove: () => void } | null = null;
+
+    const startWatching = async () => {
+      if (headingMode) {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === 'granted') {
+            subscription = await Location.watchHeadingAsync((obj) => {
+                const heading = obj.trueHeading ?? obj.magHeading;
+                updateCompass(heading);
+            });
+        }
+      }
+    };
+
+    startWatching();
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [headingMode]);
+
+  // 2. Watch user location
+  // 2a. Watch user location (Data Only - No Camera Movement)
+  useEffect(() => {
+    let subscription: { remove: () => void } | null = null;
+
+    const startWatching = async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
         
-        // Watch position for live updates
-        await Location.watchPositionAsync(
+        subscription = await Location.watchPositionAsync(
             { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
             (loc) => {
+                // Just update the state. Do NOT move the camera here.
                 setUserLocation([loc.coords.longitude, loc.coords.latitude]);
             }
         );
-      } catch (e) { console.log("Location Error:", e); }
-    })();
+      } catch (e) { 
+        console.log("Location Error:", e); 
+      }
+    };
+
+    startWatching();
+    return () => { subscription?.remove(); };
   }, []);
 
-  // 2. Initial Center Logic (Ref-based, runs once)
+  // 2b. Auto-Center ONE TIME (Triggered by state change)
   useEffect(() => {
+    // Only run if we have a location, we haven't centered yet, and the map is ready
     if (userLocation && !hasCentered.current && cameraRef.current) {
         cameraRef.current.setCamera({
             centerCoordinate: userLocation,
-            zoomLevel: 14, 
+            zoomLevel: 14,
             animationDuration: 1500,
         });
-        hasCentered.current = true;
+        hasCentered.current = true; // Lock it so it never happens again
     }
   }, [userLocation]);
 
-  // 3. Sync Hazards
+  // 3. Sync Hazards (Offline-First Realtime Listener)
   useEffect(() => {
-    const fetchUpdates = async () => {
-        try {
-            const snapshot = await firestore().collection('active_disasters').get();
-            if (snapshot.empty) return;
-            const newHazards: Record<string, any> = {};
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                const lat = data.latitude || data.lat; 
-                const lng = data.longitude || data.lon || data.lng;
-                if (!lat || !lng) return;
-                newHazards[doc.id] = {
-                    type: 'Feature',
-                    id: doc.id, 
-                    properties: { severity: data.severity || 'high', type: data.type || 'Hazard' },
-                    geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] }
-                };
-            });
-            setHazardGeoJSON({ type: 'FeatureCollection', features: Object.values(newHazards) });
-        } catch (err) { console.error(err); }
-    };
-    fetchUpdates();
-    const intervalId = setInterval(fetchUpdates, 10 * 60 * 1000); 
-    return () => clearInterval(intervalId);
+    // onSnapshot automatically loads from cache first, then syncs with server
+    const subscriber = firestore()
+      .collection('active_disasters')
+      .onSnapshot(
+        (snapshot) => {
+          if (!snapshot) return;
+
+          const newHazards: Record<string, any> = {};
+          
+          // Debugging: See if data is coming from offline cache or server
+          // console.log("Data source:", snapshot.metadata.fromCache ? "local cache" : "server");
+
+          snapshot.docs.forEach(doc => {
+              const data = doc.data();
+              // Handle potential field name variations
+              const lat = data.latitude || data.lat; 
+              const lng = data.longitude || data.lon || data.lng;
+              
+              if (!lat || !lng) return;
+
+              newHazards[doc.id] = {
+                  type: 'Feature',
+                  id: doc.id, 
+                  properties: { 
+                    severity: data.severity || 'high', 
+                    type: data.type || 'Hazard',
+                    title: data.title || 'Unknown Alert',
+                    timestamp: data.timestamp
+                  },
+                  geometry: { 
+                    type: 'Point', 
+                    coordinates: [parseFloat(lng), parseFloat(lat)] 
+                  }
+              };
+          });
+
+          setHazardGeoJSON({ 
+            type: 'FeatureCollection', 
+            features: Object.values(newHazards) 
+          });
+        },
+        (error) => {
+          console.warn("Firestore sync error (likely permission or network):", error);
+          // If offline, it might throw an error initially, but cache usually handles it.
+        }
+      );
+
+    // Unsubscribe from updates when the user leaves the map
+    return () => subscriber();
   }, []);
 
   const handleCenterOnUser = () => {
-    if (userLocation && cameraRef.current) {
-        cameraRef.current.setCamera({
-            centerCoordinate: userLocation,
-            zoomLevel: 14, 
-            animationDuration: 1000,
-            heading: 0, 
-            pitch: 0,
-        });
+    if (!userLocation || !cameraRef.current) {
+      console.warn("Center failed: userLocation =", userLocation, "cameraRef =", cameraRef.current);
+      return;
+    }
+
+    try {
+      cameraRef.current.setCamera({
+        centerCoordinate: userLocation,
+        zoomLevel: 14,
+        animationDuration: 1000,
+        heading: 0,
+        pitch: 0,
+      });
+    } catch (error) {
+      console.error("Error centering camera:", error);
     }
   };
+
+  const toggleCompassMode = () => {
+    setHeadingMode(prev => !prev);
+  };
+
+  const onMapPress = useCallback(() => setSelectedFeature(null), []);
+
+  const onRegionIsChanging = useCallback((e: any) => {
+     // Only update from map events if NOT following heading (sensor handles that)
+     if (!headingMode) {
+         if (e.properties && typeof e.properties.heading === 'number') {
+             updateCompass(e.properties.heading);
+         }
+     }
+  }, [headingMode, updateCompass]);
+
+  const onRegionDidChange = useCallback((e: any) => {
+     if (!headingMode) {
+         if (e.properties && typeof e.properties.heading === 'number') {
+             updateCompass(e.properties.heading);
+         }
+     }
+  }, [headingMode, updateCompass]);
+
+  const onUserTrackingModeChange = useCallback((e: any) => {
+      // Don't sync state on internal changes to prevent toggle loop
+      // The state is controlled by user interactions only
+  }, []);
+
+  const onHazardPress = useCallback((e: any) => {
+      if (e.features[0]) setSelectedFeature(e.features[0]);
+  }, []);
 
   const compassRotation = mapHeading.interpolate({
     inputRange: [0, 360],
@@ -124,17 +252,19 @@ export default function MapScreen() {
           attributionEnabled={false}
           compassEnabled={false} 
           
-          onPress={() => setSelectedFeature(null)}
-          onRegionIsChanging={(e) => {
-             if (e.properties && typeof e.properties.heading === 'number') {
-                 mapHeading.setValue(e.properties.heading);
-             }
-             if (selectedFeature) setSelectedFeature(null);
+          onPress={onMapPress}
+          onRegionIsChanging={onRegionIsChanging}
+          onRegionDidChange={onRegionDidChange}
+          onTouchStart={() => {
+             // Stop following user if user interacts with map
+             // setFollowUserMode(undefined); 
           }}
         >
           <Camera
             ref={cameraRef}
             defaultSettings={CAMERA_DEFAULTS}
+            followUserLocation={false}
+            onUserTrackingModeChange={onUserTrackingModeChange}
           />
 
           {/* HAZARDS */}
@@ -142,7 +272,7 @@ export default function MapScreen() {
             id="hazardSource" 
             shape={hazardGeoJSON}
             hitbox={{ width: 40, height: 40 }}
-            onPress={(e) => e.features[0] && setSelectedFeature(e.features[0])}
+            onPress={onHazardPress}
           >
             <CircleLayer
               id="hazardCircles"
@@ -179,49 +309,42 @@ export default function MapScreen() {
 
           {/* FIX 2: USER DOT & HEADING 
              - 'showsUserHeadingIndicator' draws the cone/arrow based on phone compass.
-             - 'androidRenderMode="compass"' forces the arrow style on Android.
           */}
-          <UserLocation 
+          <UserLocation
             visible={true} 
             animated={true} 
-            androidRenderMode="compass" 
-            showsUserHeadingIndicator={true} 
+            showsUserHeadingIndicator={true}
+            renderMode="native"
+            androidRenderMode="compass"
           />
-
-          {/* FIX 3: STABLE POPUP 
-             We render the PointAnnotation ALWAYS, but toggle opacity/z-index.
-             This prevents the MapView from unmounting children and resetting the camera.
-          */}
-          <PointAnnotation
-                id="selected-popup"
-                // If nothing selected, move it to [0,0] to hide it safely
-                coordinate={selectedFeature ? selectedFeature.geometry.coordinates : [0, 0]}
-                anchor={{ x: 0.5, y: 1 }}
-                selected={true}
-            >
-                <View 
-                    style={[
-                        styles.calloutWrapper, 
-                        // If no feature, make invisible
-                        { opacity: selectedFeature ? 1 : 0 }
-                    ]}
-                >
-                    {selectedFeature && (
-                        <View style={styles.bubble}>
-                            <Text style={styles.bubbleTitle}>
-                                {selectedFeature.properties.type?.toUpperCase() || "HAZARD"}
-                            </Text>
-                            <Text style={styles.bubbleSeverity}>
-                                SEVERITY: {selectedFeature.properties.severity?.toUpperCase() || "UNKNOWN"}
-                            </Text>
-                        </View>
-                    )}
-                    <View style={styles.arrow} />
-                </View>
-            </PointAnnotation>
 
         </MapView>
       </View>
+
+      {/* SELECTED HAZARD CARD */}
+      {selectedFeature && (
+        <View style={styles.hazardCard}>
+            <View style={styles.hazardHeader}>
+                <Ionicons name="warning" size={24} color="#FFF" />
+                <Text style={styles.hazardTitle}>
+                    {selectedFeature.properties.type?.toUpperCase() || "HAZARD"}
+                </Text>
+            </View>
+            <Text style={styles.hazardSeverity}>
+                SEVERITY: {selectedFeature.properties.severity?.toUpperCase() || "UNKNOWN"}
+            </Text>
+            <Text style={styles.hazardCoordinates}>
+                Lat: {selectedFeature.geometry.coordinates[1].toFixed(4)}, 
+                Lng: {selectedFeature.geometry.coordinates[0].toFixed(4)}
+            </Text>
+            <TouchableOpacity 
+                style={styles.closeCardButton}
+                onPress={() => setSelectedFeature(null)}
+            >
+                <Ionicons name="close" size={20} color="#FFF" />
+            </TouchableOpacity>
+        </View>
+      )}
 
       {/* COMPASS */}
       <View style={styles.compassContainer}>
@@ -247,6 +370,14 @@ export default function MapScreen() {
 
       <TouchableOpacity style={styles.fab} onPress={handleCenterOnUser}>
         <Ionicons name="locate" size={28} color="#FFF" />
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.fab, { bottom: 140 }]} onPress={toggleCompassMode}>
+        <Ionicons 
+          name={headingMode ? "compass" : "compass-outline"} 
+          size={28} 
+          color={headingMode ? COLORS.accent : "#FFF"} 
+        />
       </TouchableOpacity>
 
       <View style={styles.statusBar}>
@@ -292,22 +423,17 @@ const styles = StyleSheet.create({
   },
   statusText: { color: "#FFF", fontSize: 12, fontWeight: "bold" },
 
-  calloutWrapper: { 
-    alignItems: 'center', width: 160, marginBottom: 5, 
-    zIndex: 2000, elevation: 50 
+  hazardCard: {
+    position: 'absolute', bottom: 60, left: 20, right: 20,
+    backgroundColor: '#000', padding: 15, borderRadius: 12,
+    elevation: 10, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 5,
+    zIndex: 100, borderWidth: 1, borderColor: '#333'
   },
-  bubble: {
-    backgroundColor: '#fff', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#000', 
-    width: '100%', elevation: 10, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 5
-  },
-  bubbleTitle: { fontWeight: '900', fontSize: 13, color: '#D32F2F', textAlign: 'center', marginBottom: 4 },
-  bubbleSeverity: { fontSize: 10, color: '#555', textAlign: 'center', fontWeight: 'bold' },
-  arrow: {
-    backgroundColor: '#fff', width: 14, height: 14,
-    borderBottomColor: '#000', borderBottomWidth: 1,
-    borderRightColor: '#000', borderRightWidth: 1,
-    transform: [{ rotate: '45deg' }], marginTop: -7, zIndex: -1, 
-  },
+  hazardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
+  hazardTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF', marginLeft: 8 },
+  hazardSeverity: { fontSize: 12, color: '#CCC', fontWeight: 'bold', marginBottom: 2 },
+  hazardCoordinates: { fontSize: 10, color: '#AAA' },
+  closeCardButton: { position: 'absolute', top: 10, right: 10, padding: 5 },
 
   compassContainer: {
     position: 'absolute', top: Platform.OS === 'android' ? 60 : 50, right: 20,
