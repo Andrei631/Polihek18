@@ -1,4 +1,5 @@
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { type Message } from 'react-native-rag';
 import { COLORS } from '../constants/colors';
 
@@ -22,16 +23,18 @@ export function MessagesList({
           : messageStyles.assistantMessage,
       ]}
     >
-      <Text
-        style={[
-          messageStyles.messageText,
-          item.role === 'user'
-            ? messageStyles.userMessageText
-            : messageStyles.assistantMessageText,
-        ]}
-      >
-        {item.content}
-      </Text>
+      {item.role === 'user' ? (
+        <Text style={messageStyles.userMessageText}>{item.content}</Text>
+      ) : (
+        <Markdown
+          style={{
+            body: { color: COLORS.textPrimary, fontSize: 16 },
+            paragraph: { marginVertical: 0 },
+          }}
+        >
+          {item.content}
+        </Markdown>
+      )}
     </View>
   );
 
@@ -45,7 +48,14 @@ export function MessagesList({
         isGenerating ? (
           <View style={[messageStyles.messageContainer, messageStyles.assistantMessage]}>
             {response ? (
-              <Text style={messageStyles.assistantMessageText}>{response}</Text>
+              <Markdown
+                style={{
+                  body: { color: COLORS.textPrimary, fontSize: 16 },
+                  paragraph: { marginVertical: 0 },
+                }}
+              >
+                {response}
+              </Markdown>
             ) : (
               <View style={messageStyles.thinkingContainer}>
                 <ActivityIndicator size="small" color={COLORS.accent} />

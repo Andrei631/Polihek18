@@ -1,59 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from './constants/colors';
 import { useRAGContext } from './context/RAGContext';
-import { MANUALS_DATA, Manual } from './data/manuals';
+import { Manual } from './data/manuals';
 
 interface SurvivalManualsProps {
   onSelectManual?: (manual: Manual) => void;
 }
 
-// Flatten the dataset and add category
-const ALL_MANUALS = Object.entries(MANUALS_DATA.dataset).flatMap(([category, manuals]) => 
-  manuals.map(manual => ({ ...manual, category: category.replace(/_/g, ' ') }))
-);
-
 export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps) {
-  const { vectorStore } = useRAGContext();
+  const { vectorStore, manuals } = useRAGContext();
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [filteredData, setFilteredData] = useState(ALL_MANUALS);
+  const [filteredData, setFilteredData] = useState<(Manual & { category: string })[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedManual, setSelectedManual] = useState<Manual & { category: string } | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Indexing is now handled by RAGContext
+  useEffect(() => {
+    if (manuals.length > 0) {
+      setFilteredData(manuals);
+    }
+  }, [manuals]);
+
 
   const handleSearch = async (text: string) => {
     setSearchQuery(text);
     
     if (!text.trim()) {
-      setFilteredData(ALL_MANUALS);
+      setFilteredData(manuals);
       return;
     }
 
     if (vectorStore) {
       setIsSearching(true);
       try {
-        // Semantic search
         const results = await vectorStore.query({
           queryText: text,
           nResults: 1,
         });
 
         if (results.length > 0) {
-           // Try to find matching manuals from our static data based on the returned documents
-           const matchedManuals = ALL_MANUALS.filter(manual => 
+           const matchedManuals = manuals.filter(manual => 
              results.some(r => r.document && r.document.includes(manual.disaster_type))
            );
            
            if (matchedManuals.length > 0) {
              setFilteredData(matchedManuals);
            } else {
-             // Fallback to keyword search
-             const keywordFiltered = ALL_MANUALS.filter((item) =>
+             const keywordFiltered = manuals.filter((item) =>
                 item.disaster_type.toLowerCase().includes(text.toLowerCase()) ||
                 item.warning_signs_and_conditions.some(sign => sign.toLowerCase().includes(text.toLowerCase())) ||
                 item.protective_measures.some(measure => measure.toLowerCase().includes(text.toLowerCase()))
@@ -65,8 +62,7 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
         }
       } catch (error) {
         console.error("Semantic search failed:", error);
-        // Fallback to keyword search
-        const keywordFiltered = ALL_MANUALS.filter((item) =>
+        const keywordFiltered = manuals.filter((item) =>
           item.disaster_type.toLowerCase().includes(text.toLowerCase()) ||
           item.warning_signs_and_conditions.some(sign => sign.toLowerCase().includes(text.toLowerCase())) ||
           item.protective_measures.some(measure => measure.toLowerCase().includes(text.toLowerCase()))
@@ -76,8 +72,7 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
         setIsSearching(false);
       }
     } else {
-      // Keyword search fallback
-      const filtered = ALL_MANUALS.filter((item) =>
+      const filtered = manuals.filter((item) =>
         item.disaster_type.toLowerCase().includes(text.toLowerCase()) ||
         item.warning_signs_and_conditions.some(sign => sign.toLowerCase().includes(text.toLowerCase())) ||
         item.protective_measures.some(measure => measure.toLowerCase().includes(text.toLowerCase()))
@@ -98,7 +93,14 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Survival Manuals</Text>
+      {manuals.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+          <Text style={styles.loadingText}>Loading manuals...</Text>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.title}>Survival Manuals</Text>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -182,6 +184,8 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
           </SafeAreaView>
         </View>
       </Modal>
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -213,6 +217,16 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     fontSize: 16,
     paddingRight: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: COLORS.textSecondary,
+    fontSize: 16,
   },
   loader: {
     position: 'absolute',
@@ -246,6 +260,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.textPrimary,
     marginBottom: 8,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: COLORS.error || '#ff4444',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  retryButton: {
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   shortDescription: {
     fontSize: 14,

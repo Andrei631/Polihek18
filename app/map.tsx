@@ -6,7 +6,7 @@ import {
   ShapeSource,
   UserLocation,
 } from "@maplibre/maplibre-react-native";
-import firestore from '@react-native-firebase/firestore';
+import { getFirestore, collection, onSnapshot } from '@react-native-firebase/firestore';
 import * as Location from "expo-location";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState, useCallback } from "react";
@@ -14,7 +14,6 @@ import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "re
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants/theme";
 
-// FIX 1: Stable Camera Defaults (Prevents resets)
 const CAMERA_DEFAULTS = {
     centerCoordinate: [0, 0],
     zoomLevel: 1,
@@ -31,27 +30,22 @@ export default function MapScreen() {
   const [hazardGeoJSON, setHazardGeoJSON] = useState<any>({ type: 'FeatureCollection', features: [] });
   const [headingMode, setHeadingMode] = useState(false); // Track if compass heading is active
   
-  // Ref for initialization logic
   const hasCentered = useRef(false);
   const cameraRef = useRef<any>(null);
   
-  // Animation for Compass
   const mapHeading = useRef(new Animated.Value(0)).current;
   const mapHeadingVal = useRef(0); // Cumulative heading value
   const smoothedHeading = useRef(0); // Exponential smoothing buffer
   const SMOOTHING_FACTOR = 0.3; // Lower = more smoothing (0-1)
 
   const updateCompass = useCallback((heading: number) => {
-      // Normalize to 0-360
       const normalized = ((heading % 360) + 360) % 360;
       
-      // Apply exponential smoothing to reduce jitter
       let diff = normalized - smoothedHeading.current;
       if (diff > 180) diff -= 360;
       if (diff < -180) diff += 360;
       smoothedHeading.current += diff * SMOOTHING_FACTOR;
       
-      // Calculate shortest rotation for cumulative heading
       const current = mapHeadingVal.current;
       const currentMod = ((current % 360) + 360) % 360;
       const smoothedNorm = ((smoothedHeading.current % 360) + 360) % 360;
@@ -69,7 +63,6 @@ export default function MapScreen() {
       }).start();
   }, []);
 
-  // 1. Watch Heading for smooth compass updates
   useEffect(() => {
     let subscription: { remove: () => void } | null = null;
 
@@ -92,8 +85,6 @@ export default function MapScreen() {
     };
   }, [headingMode]);
 
-  // 2. Watch user location
-  // 2a. Watch user location (Data Only - No Camera Movement)
   useEffect(() => {
     let subscription: { remove: () => void } | null = null;
 
@@ -117,37 +108,28 @@ export default function MapScreen() {
     startWatching();
     return () => { subscription?.remove(); };
   }, []);
-
-  // 2b. Auto-Center ONE TIME (Triggered by state change)
   useEffect(() => {
-    // Only run if we have a location, we haven't centered yet, and the map is ready
     if (userLocation && !hasCentered.current && cameraRef.current) {
         cameraRef.current.setCamera({
             centerCoordinate: userLocation,
             zoomLevel: 14,
             animationDuration: 1500,
         });
-        hasCentered.current = true; // Lock it so it never happens again
+        hasCentered.current = true; 
     }
   }, [userLocation]);
 
-  // 3. Sync Hazards (Offline-First Realtime Listener)
   useEffect(() => {
-    // onSnapshot automatically loads from cache first, then syncs with server
-    const subscriber = firestore()
-      .collection('active_disasters')
-      .onSnapshot(
+    const db = getFirestore();
+    const subscriber = onSnapshot(collection(db, 'active_disasters'),
         (snapshot) => {
           if (!snapshot) return;
 
           const newHazards: Record<string, any> = {};
           
-          // Debugging: See if data is coming from offline cache or server
-          // console.log("Data source:", snapshot.metadata.fromCache ? "local cache" : "server");
 
           snapshot.docs.forEach(doc => {
               const data = doc.data();
-              // Handle potential field name variations
               const lat = data.latitude || data.lat; 
               const lng = data.longitude || data.lon || data.lng;
               
@@ -176,11 +158,9 @@ export default function MapScreen() {
         },
         (error) => {
           console.warn("Firestore sync error (likely permission or network):", error);
-          // If offline, it might throw an error initially, but cache usually handles it.
         }
       );
 
-    // Unsubscribe from updates when the user leaves the map
     return () => subscriber();
   }, []);
 
@@ -210,7 +190,6 @@ export default function MapScreen() {
   const onMapPress = useCallback(() => setSelectedFeature(null), []);
 
   const onRegionIsChanging = useCallback((e: any) => {
-     // Only update from map events if NOT following heading (sensor handles that)
      if (!headingMode) {
          if (e.properties && typeof e.properties.heading === 'number') {
              updateCompass(e.properties.heading);
@@ -227,8 +206,6 @@ export default function MapScreen() {
   }, [headingMode, updateCompass]);
 
   const onUserTrackingModeChange = useCallback((e: any) => {
-      // Don't sync state on internal changes to prevent toggle loop
-      // The state is controlled by user interactions only
   }, []);
 
   const onHazardPress = useCallback((e: any) => {
@@ -256,8 +233,6 @@ export default function MapScreen() {
           onRegionIsChanging={onRegionIsChanging}
           onRegionDidChange={onRegionDidChange}
           onTouchStart={() => {
-             // Stop following user if user interacts with map
-             // setFollowUserMode(undefined); 
           }}
         >
           <Camera
@@ -285,7 +260,6 @@ export default function MapScreen() {
             />
           </ShapeSource>
 
-          {/* SAFE PLACES (Offline Friendly) */}
           <CircleLayer
               id="safeSpots"
               sourceID="openmaptiles"
@@ -307,9 +281,6 @@ export default function MapScreen() {
               ]}
           />
 
-          {/* FIX 2: USER DOT & HEADING 
-             - 'showsUserHeadingIndicator' draws the cone/arrow based on phone compass.
-          */}
           <UserLocation
             visible={true} 
             animated={true} 
@@ -321,7 +292,6 @@ export default function MapScreen() {
         </MapView>
       </View>
 
-      {/* SELECTED HAZARD CARD */}
       {selectedFeature && (
         <View style={styles.hazardCard}>
             <View style={styles.hazardHeader}>

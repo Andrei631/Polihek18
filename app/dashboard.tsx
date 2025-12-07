@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { OfflineManager } from "@maplibre/maplibre-react-native";
 import { useNetInfo } from '@react-native-community/netinfo';
-import { firebase } from '@react-native-firebase/auth';
+import { getAuth, signOut } from '@react-native-firebase/auth';
 import * as Location from "expo-location";
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -32,26 +32,24 @@ export default function Dashboard() {
   const [downloadedRadius, setDownloadedRadius] = useState<string | null>(null);
   const [existingPack, setExistingPack] = useState<any>(null);
   
-  // Modal State
+  
   const [modalVisible, setModalVisible] = useState(false);
-  const [radiusInput, setRadiusInput] = useState('20'); // Default to min
-  const [estimatedSize, setEstimatedSize] = useState('~40 MB'); // Initial estimate
+  const [radiusInput, setRadiusInput] = useState('20'); 
+  const [estimatedSize, setEstimatedSize] = useState('~40 MB'); 
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // --- 1. CHECK FOR EXISTING DOWNLOADS ---
+  
   useEffect(() => {
     checkExistingDownloads();
   }, []);
 
-  // --- 2. UPDATE SIZE ESTIMATE WHEN INPUT CHANGES ---
+  
   useEffect(() => {
     const r = parseInt(radiusInput);
     if (!isNaN(r) && r > 0) {
-        // Heuristic: Area * 0.1 MB (Adjust based on testing)
-        // 20km -> 40MB
-        // 50km -> 250MB
+
         const sizeMB = Math.round((r * r) * 0.1); 
-        // Add roughly 10MB for the global overview tiles
+
         const totalSize = sizeMB + 10; 
         setEstimatedSize(`~${totalSize} MB`);
     } else {
@@ -62,7 +60,7 @@ export default function Dashboard() {
   const checkExistingDownloads = async () => {
     try {
       const packs = await OfflineManager.getPacks();
-      // We look for the "Detail" pack specifically
+
       const foundPack = packs.find(p => p.name?.includes('offlinePack_Detail'));
       
       if (foundPack) {
@@ -102,7 +100,7 @@ export default function Dashboard() {
                   try {
                     const packs = await OfflineManager.getPacks();
                     for (const pack of packs) {
-                        // Delete BOTH global and detail packs to be clean
+
                         if (pack.name?.includes('offlinePack')) {
                             await OfflineManager.deletePack(pack.name);
                         }
@@ -116,11 +114,10 @@ export default function Dashboard() {
       );
   };
 
-  // --- DOWNLOAD LOGIC (HYBRID STRATEGY) ---
   const handleInitiateDownload = async () => {
     const km = parseInt(radiusInput);
 
-    // 1. VALIDATION: Minimum 20km
+
     if (isNaN(km) || km < 20) {
         Alert.alert("Minimum Radius Required", "Please enter at least 20km to ensure safe coverage.");
         return;
@@ -131,7 +128,7 @@ export default function Dashboard() {
     try {
         OfflineManager.setTileCountLimit(1000000); 
 
-        // Cleanup old packs
+
         const packs = await OfflineManager.getPacks();
         for (const pack of packs) {
             if (pack.name?.includes('offlinePack')) {
@@ -150,11 +147,10 @@ export default function Dashboard() {
         const lng = loc.coords.longitude;
         const lat = loc.coords.latitude;
 
-        // Use your MapTiler Key
+
         const MAP_STYLE = `https://api.maptiler.com/maps/streets/style.json?key=i2gNH16bxfhHTv62Ijhp`;
 
-        // --- PART A: DOWNLOAD GLOBAL OVERVIEW (Zoom 0-4) ---
-        // This takes ~10MB and ensures the user never sees a blank world
+
         await OfflineManager.createPack({
             name: `offlinePack_Global`,
             styleURL: MAP_STYLE,
@@ -164,7 +160,7 @@ export default function Dashboard() {
             metadata: { type: 'global_overview' }
         }, (p) => {}, (e) => console.log(e));
 
-        // --- PART B: DOWNLOAD DETAILED REGION (Zoom 5-14) ---
+
         const R = 6371; 
         const dLng = (km / R) * (180 / Math.PI) / Math.cos(lat * Math.PI / 180);
         const dLat = (km / R) * (180 / Math.PI);
@@ -264,11 +260,11 @@ export default function Dashboard() {
         />
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={() => { firebase.auth().signOut(); router.replace('/'); }}>
+      <TouchableOpacity style={styles.logoutButton} onPress={() => { signOut(getAuth()); router.replace('/'); }}>
         <Text style={styles.logoutText}>DISCONNECT</Text>
       </TouchableOpacity>
 
-      {/* MODAL */}
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -302,7 +298,6 @@ export default function Dashboard() {
               <Text style={styles.kmText}>KM</Text>
             </View>
 
-            {/* SIZE ESTIMATOR UI */}
             <View style={styles.estimateContainer}>
                 <Text style={styles.estimateLabel}>ESTIMATED STORAGE:</Text>
                 <Text style={styles.estimateValue}>{estimatedSize}</Text>
@@ -345,8 +340,7 @@ const styles = StyleSheet.create({
   menuContainer: { flex: 1 },
   logoutButton: { alignSelf: 'center', marginBottom: 20, padding: 15 },
   logoutText: { color: COLORS.danger, fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
-  
-  // MODAL STYLES
+
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' },
   modalContent: { backgroundColor: '#181818', padding: 24, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: '#333' },
   modalHeader: { alignItems: 'center', marginBottom: 16 },
@@ -357,7 +351,7 @@ const styles = StyleSheet.create({
   modalInput: { backgroundColor: '#222', color: '#FFF', fontSize: 32, fontWeight: 'bold', width: 100, textAlign: 'center', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: COLORS.accent },
   kmText: { color: COLORS.accent, fontSize: 24, fontWeight: 'bold', marginLeft: 12 },
   
-  // New Estimate Styles
+
   estimateContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 30, backgroundColor: '#222', padding: 8, borderRadius: 6, alignSelf: 'center' },
   estimateLabel: { color: COLORS.textSecondary, fontSize: 12, marginRight: 8, fontWeight: 'bold' },
   estimateValue: { color: COLORS.success, fontSize: 12, fontWeight: 'bold' },

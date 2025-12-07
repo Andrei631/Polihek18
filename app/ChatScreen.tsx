@@ -15,6 +15,11 @@ import { MessagesList } from './components/MessagesList';
 import { COLORS } from './constants/colors';
 import { useRAGContext } from './context/RAGContext';
 
+const SYSTEM_PROMPT = `You are Sentinel, an expert survival assistant.
+Your goal is to provide clear, concise, and life-saving advice during emergencies.
+Prioritize safety, accuracy, and calmness.
+Use the provided context to answer questions.`;
+
 export default function ChatScreen() {
   const { vectorStore, llm, isReady, progress } = useRAGContext();
   const [message, setMessage] = useState<string>('');
@@ -47,7 +52,7 @@ export default function ChatScreen() {
 
     try {
       const response = await rag.generate({
-        input: newMessage.content,
+        input: `${SYSTEM_PROMPT}\n\nQuestion: ${newMessage.content}`,
         augmentedGeneration: true,
       });
       

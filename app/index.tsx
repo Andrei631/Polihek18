@@ -1,6 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  fetchSignInMethodsForEmail, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword 
+} from '@react-native-firebase/auth';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  serverTimestamp 
+} from '@react-native-firebase/firestore';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -22,21 +33,22 @@ import { COLORS } from '../constants/theme';
 export default function LoginScreen() {
   const router = useRouter();
   
-  // Form State
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // Paywall State
+  
   const [showPaywall, setShowPaywall] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  // Auth Listener
+  
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged((u) => {
+    const auth = getAuth();
+    const subscriber = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (initializing) setInitializing(false);
     });
@@ -47,7 +59,7 @@ export default function LoginScreen() {
     if (user) router.replace('/dashboard');
   }, [user]);
 
-  // --- 1. PRE-CHECK (Before showing Paywall) ---
+  
   const handlePreRegister = async () => {
     if (!email || !password) {
       Alert.alert('Missing Info', 'Please enter both email and password.');
@@ -56,8 +68,9 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // Check if email exists WITHOUT creating user yet
-      const methods = await auth().fetchSignInMethodsForEmail(email);
+      
+      const auth = getAuth();
+      const methods = await fetchSignInMethodsForEmail(auth, email);
       
       if (methods && methods.length > 0) {
         Alert.alert('Account Exists', 'This email is already registered. Please log in.');
@@ -65,43 +78,36 @@ export default function LoginScreen() {
         return;
       }
 
-      // Email is free! Show the Money Screen 💰
       setLoading(false);
       setShowPaywall(true);
 
     } catch (error: any) {
       setLoading(false);
-      // Fallback: If fetchSignInMethods is blocked by security rules, just try to create
-      // For this demo, we assume it works or we catch basic format errors
       if (error.code === 'auth/invalid-email') {
         Alert.alert('Invalid Email', 'Please enter a valid email address.');
       } else {
-        // If we can't check, show paywall anyway and let creation fail later if needed
         setShowPaywall(true); 
       }
     }
   };
 
-  // --- 2. PAYMENT & CREATION (The Real Deal) ---
   const handleFinalizePurchaseAndRegister = async () => {
     setProcessingPayment(true);
     try {
-      // A. Simulate Payment Processing (Replace with RevenueCat/Stripe later)
       await new Promise(resolve => setTimeout(resolve, 1500)); 
 
-      // B. Create Auth User
-      const authResponse = await auth().createUserWithEmailAndPassword(email, password);
+      const auth = getAuth();
+      const authResponse = await createUserWithEmailAndPassword(auth, email, password);
       
-      // C. Create Firestore Doc with LIFETIME Status
-      await firestore().collection('users').doc(authResponse.user.uid).set({
+      const db = getFirestore();
+      await setDoc(doc(db, 'users', authResponse.user.uid), {
         email: email,
-        createdAt: firestore.FieldValue.serverTimestamp(),
-        isLifetimePremium: true, // <--- THEY PAID, SO THEY ARE GOLD
-        lastLogin: firestore.FieldValue.serverTimestamp(),
-        paymentId: `sim_${Date.now()}` // Track the "payment"
+        createdAt: serverTimestamp(),
+        isLifetimePremium: true, 
+        lastLogin: serverTimestamp(),
+        paymentId: `sim_${Date.now()}` 
       });
 
-      // Navigation handled by useEffect
     } catch (error: any) {
       setProcessingPayment(false);
       let msg = error.message;
@@ -114,7 +120,8 @@ export default function LoginScreen() {
     if (!email || !password) return;
     setLoading(true);
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      const auth = getAuth();
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       Alert.alert('Login Failed', "Incorrect email or password.");
     } finally {
@@ -258,7 +265,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingHorizontal: 24 },
   
-  // LOGIN STYLES
   loginHeader: { alignItems: 'center', marginBottom: 50 },
   logoCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(82, 99, 121, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: COLORS.accent },
   appTitle: { fontSize: 28, fontWeight: '900', color: COLORS.textPrimary, letterSpacing: 3 },
@@ -272,7 +278,6 @@ const styles = StyleSheet.create({
   registerButton: { backgroundColor: COLORS.accent, borderWidth: 1, borderColor: COLORS.accent },
   registerText: { color: '#FFF', fontSize: 14, fontWeight: 'bold', letterSpacing: 1 },
 
-  // MODAL STYLES
   modalContainer: { flex: 1, backgroundColor: '#000' },
   modalHeader: { padding: 16, alignItems: 'flex-end' },
   closeButton: { padding: 8, backgroundColor: '#222', borderRadius: 20 },

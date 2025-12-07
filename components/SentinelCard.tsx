@@ -8,7 +8,6 @@ interface SentinelCardProps {
   subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
-  // 1. ADD THIS NEW PROP DEFINITION
   onLongPress?: () => void; 
   isPremium?: boolean;
   isLocked?: boolean;
@@ -19,7 +18,7 @@ export const SentinelCard = ({
   subtitle, 
   icon, 
   onPress, 
-  onLongPress, // 2. DESTRUCTURE IT HERE
+  onLongPress,
   isPremium = false,
   isLocked = false
 }: SentinelCardProps) => {
@@ -28,9 +27,8 @@ export const SentinelCard = ({
     <TouchableOpacity 
       style={[styles.card, isLocked && styles.lockedCard]} 
       onPress={onPress}
-      // 3. PASS IT TO THE TOUCHABLE COMPONENT
       onLongPress={onLongPress}
-      delayLongPress={500} // Optional: Adjusts how long (ms) to hold (default is 500ms)
+      delayLongPress={500} 
       activeOpacity={0.7}
     >
       <View style={styles.iconContainer}>
@@ -50,7 +48,6 @@ export const SentinelCard = ({
         </Text>
       </View>
 
-      {/* Optional: Visual cue for interactivity */}
       <Ionicons 
         name="chevron-forward" 
         size={20} 
@@ -65,7 +62,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E', // Dark card background
+    backgroundColor: '#1E1E1E',  
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,

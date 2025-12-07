@@ -4,12 +4,14 @@ import {
 } from '@react-native-rag/executorch';
 import { OPSQLiteVectorStore } from '@react-native-rag/op-sqlite';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { MANUALS_DATA } from '../data/manuals';
+import { getFirestore, collection, getDocs } from '@react-native-firebase/firestore';
+import { Manual, MANUALS_DATA } from '../data/manuals';
 import { checkModelsExist, downloadFile, MODEL_PATHS, MODEL_URLS } from '../utils/modelDownloader';
 
 interface RAGContextType {
   vectorStore: OPSQLiteVectorStore | null;
   llm: ExecuTorchLLM | null;
+  manuals: (Manual & { category: string })[];
   isReady: boolean;
   isDownloading: boolean;
   progress: {
@@ -22,6 +24,7 @@ interface RAGContextType {
 const RAGContext = createContext<RAGContextType>({
   vectorStore: null,
   llm: null,
+  manuals: [],
   isReady: false,
   isDownloading: false,
   progress: { embeddings: 0, llm: 0, llmDownload: 0 },
@@ -33,6 +36,7 @@ export function RAGProvider({ children }: { children: React.ReactNode }) {
   const [isStoreReady, setIsStoreReady] = useState(false);
   const [areModelsDownloaded, setAreModelsDownloaded] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [manuals, setManuals] = useState<(Manual & { category: string })[]>([]);
 
   useEffect(() => {
     const initModels = async () => {
@@ -44,11 +48,11 @@ export function RAGProvider({ children }: { children: React.ReactNode }) {
       } else {
         setDownloading(true);
         try {
-          // Download Embeddings
+          
           await downloadFile(MODEL_URLS.EMBEDDING_MODEL, MODEL_PATHS.EMBEDDING_MODEL, setEmbeddingsProgress);
           await downloadFile(MODEL_URLS.EMBEDDING_TOKENIZER, MODEL_PATHS.EMBEDDING_TOKENIZER);
           
-          // Download LLM
+          
           await downloadFile(MODEL_URLS.LLAMA_MODEL, MODEL_PATHS.LLAMA_MODEL, setLlmProgress);
           await downloadFile(MODEL_URLS.LLAMA_TOKENIZER, MODEL_PATHS.LLAMA_TOKENIZER);
           await downloadFile(MODEL_URLS.LLAMA_CONFIG, MODEL_PATHS.LLAMA_CONFIG);
@@ -100,8 +104,21 @@ export function RAGProvider({ children }: { children: React.ReactNode }) {
         try {
           await vectorStore.load();
           
-          // Flatten the dataset to get all manuals
-          const allManuals = Object.values(MANUALS_DATA.dataset).flat();
+          
+          const db = getFirestore();
+          const categories = Object.keys(MANUALS_DATA.dataset);
+          
+          const manualsPromises = categories.map(async (category) => {
+            const manualsSnapshot = await getDocs(collection(db, 'dataset', category, 'manuals'));
+            return manualsSnapshot.docs.map(doc => ({
+              ...(doc.data() as Manual),
+              category: category.replace(/_/g, ' ')
+            }));
+          });
+
+          const manualsArrays = await Promise.all(manualsPromises);
+          const allManuals = manualsArrays.flat();
+          setManuals(allManuals);
 
           for (const manual of allManuals) {
             try {
@@ -111,7 +128,7 @@ export function RAGProvider({ children }: { children: React.ReactNode }) {
                 metadata: { type: 'manual', title: manual.disaster_type }
               });
             } catch (e) {
-              // Ignore if already exists
+              
             }
           }
           
@@ -131,12 +148,13 @@ export function RAGProvider({ children }: { children: React.ReactNode }) {
       value={{
         vectorStore,
         llm,
+        manuals,
         isReady,
         isDownloading: downloading,
         progress: {
           embeddings: embeddingsProgress,
           llm: llmProgress,
-          llmDownload: llmProgress, // Mapping manual download progress
+          llmDownload: llmProgress, 
         },
       }}
     >
