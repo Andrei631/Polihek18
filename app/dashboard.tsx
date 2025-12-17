@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { OfflineManager } from "@maplibre/maplibre-react-native";
 import { useNetInfo } from '@react-native-community/netinfo';
-import { getAuth, signOut } from '@react-native-firebase/auth';
+import { getAuth, onAuthStateChanged, signOut } from '@react-native-firebase/auth';
+import { doc, getDoc, getFirestore, serverTimestamp, updateDoc } from '@react-native-firebase/firestore';
 import * as Location from "expo-location";
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -20,7 +21,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SentinelCard } from '../components/SentinelCard';
 import { COLORS } from '../constants/theme';
+import { ConsentModal } from './components/ConsentModal';
+import { CreditsModal } from './components/CreditsModal';
 import { useRAGContext } from './context/RAGContext';
+import { getLocalConsent, saveConsentLocally } from './utils/storage';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -37,11 +41,74 @@ export default function Dashboard() {
   const [radiusInput, setRadiusInput] = useState('20'); 
   const [estimatedSize, setEstimatedSize] = useState('~40 MB'); 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [creditsVisible, setCreditsVisible] = useState(false);
+  const [consentVisible, setConsentVisible] = useState(false);
 
   
   useEffect(() => {
     checkExistingDownloads();
+
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      if (u) checkConsent(u.uid);
+    });
+
+    return unsubscribe;
   }, []);
+
+  const checkConsent = async (uid: string) => {
+    // 1) Check local storage first (offline-first)
+    const localConsent = await getLocalConsent(uid);
+    if (localConsent) return;
+
+    // 2) Try to sync from Firestore (may fail offline)
+    const db = getFirestore();
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData?.hasConsented) {
+          await saveConsentLocally(uid, true);
+          return;
+        }
+      }
+
+      // No Firestore consent found and no local consent -> show modal
+      setConsentVisible(true);
+    } catch (e) {
+      console.log('Error checking consent', e);
+      // Offline / fetch failure and no local consent -> show modal
+      setConsentVisible(true);
+    }
+  };
+
+  const handleAcceptConsent = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // 1. Save locally immediately (per-user)
+    await saveConsentLocally(user.uid, true);
+    setConsentVisible(false);
+
+    // 2. Try to sync with Firestore (will queue if offline)
+    try {
+      const db = getFirestore();
+      await updateDoc(doc(db, 'users', user.uid), {
+        hasConsented: true,
+        consentDate: serverTimestamp()
+      });
+    } catch (error) {
+      console.log("Firestore update failed (likely offline), but local consent saved.");
+    }
+  };
+
+  const handleDeclineConsent = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    router.replace('/');
+  };
 
   
   useEffect(() => {
@@ -222,6 +289,9 @@ export default function Dashboard() {
             {isConnected ? "● NETWORK: ONLINE" : "○ NETWORK: OFFLINE"}
           </Text>
         </View>
+        <TouchableOpacity onPress={() => setCreditsVisible(true)}>
+            <Ionicons name="information-circle-outline" size={24} color={COLORS.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.menuContainer}>
@@ -264,6 +334,13 @@ export default function Dashboard() {
         <Text style={styles.logoutText}>DISCONNECT</Text>
       </TouchableOpacity>
 
+      <CreditsModal visible={creditsVisible} onClose={() => setCreditsVisible(false)} />
+      
+      <ConsentModal 
+        visible={consentVisible} 
+        onAccept={handleAcceptConsent} 
+        onDecline={handleDeclineConsent} 
+      />
 
       <Modal
         animationType="slide"

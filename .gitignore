@@ -13,10 +13,14 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.crt
+*.cer
+*.der
 
 # Metro
 .metro-health-check*
@@ -31,10 +35,31 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
+!.env.example
+!.env.sample
 .env*.local
+
+# secrets / credentials (never commit)
+**/serviceAccount*.json
+**/*firebase-adminsdk*.json
+**/google-application-credentials*.json
+**/credentials*.json
 
 # typescript
 *.tsbuildinfo
+
+# Release artifacts
+*.apk
+*.aab
+*.ipa
+
+# Editors
+.idea/
+*.iml
+*.swp
+*.swo
 
 app-example
 

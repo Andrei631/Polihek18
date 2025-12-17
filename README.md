@@ -1,50 +1,101 @@
-# Welcome to your Expo app 👋
+# Sentinel (Polihek18)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Sentinel is a crisis-support mobile app designed to keep working when connectivity is unreliable. Users can search through offline documents/manuals, chat with an on-device AI assistant, use a map, and store personal data locally. When the device is online, Sentinel can also show hazard zones.
 
-## Get started
+## What it does
 
-1. Install dependencies
+- **Offline-first crisis info:** browse and search helpful documents/manuals.
+- **AI chat (on-device):** ask questions and get guidance based on locally available content.
+- **Map view:** view your position and navigate information.
+- **Local “Secret Vault”:** store personal notes/documents locally on the device.
+- **Hazard zones (online):** when connected, the app can fetch and display hazard areas.
 
-   ```bash
-   npm install
-   ```
+## Offline vs online behavior
 
-2. Start the app
+- **Works offline:** document browsing/search, AI chat (on-device), map UI, and local data storage.
+- **Enhanced online:** hazard-zone data becomes available when the device has connectivity.
 
-   ```bash
-   npx expo start
-   ```
+## Tech stack
 
-In the output, you'll find options to open the app in a
+- Expo (React Native) + `expo-router`
+- Firebase (Auth, Firestore, Functions)
+- MapLibre (React Native)
+- On-device RAG / AI: `@react-native-rag/executorch` + SQLite (`@op-engineering/op-sqlite`)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Prerequisites
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Node.js + npm
+- Expo tooling (this repo uses Expo SDK 54)
+- Android Studio + Android Emulator (for Android development builds)
 
-## Get a fresh project
-
-When you're ready, run:
+## Quick start
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Start the Metro bundler:
 
-## Learn more
+```bash
+npm run start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Run on Android (development build):
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run android
+```
 
-## Join the community
+Other platforms:
 
-Join our community of developers creating universal apps.
+```bash
+npm run ios
+npm run web
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Lint:
+
+```bash
+npm run lint
+```
+
+## Configuration notes
+
+- **Android package id:** `ro.polihek18.app` (see `app.json`).
+- **Firebase on Android:** `google-services.json` is referenced from `app.json` and must be present at the repo root.
+- **EAS build profiles:** see `eas.json` (`development`, `preview`, `production`).
+
+## Project structure
+
+- `app/` — screens/routes (expo-router)
+  - `app/dashboard.tsx` — main dashboard (includes consent gating + credits)
+  - `app/map.tsx` — map screen
+  - `app/secretvault.tsx` — local vault
+  - `app/ChatScreen.tsx` — AI chat
+  - `app/components/` — UI components (modals, chat UI, etc.)
+  - `app/utils/` — local utilities (including offline storage helpers)
+- `assets/` — bundled assets
+- `PolihackV18-hazard-location-detection-main/` — Firebase backend (functions + config)
+
+## Backend (Firebase Functions)
+
+The folder `PolihackV18-hazard-location-detection-main/` contains a Firebase project with a `functions/` package. If you deploy/use the backend, follow Firebase CLI workflows from inside that folder.
+
+## Lockfiles
+
+This repo uses npm and includes `package-lock.json`. In most teams, you should commit lockfiles to keep installs reproducible across machines and CI.
+
+## Troubleshooting
+
+- **`npm run android` fails:** ensure Android Studio + an emulator are installed and your `ANDROID_HOME` is configured.
+- **No hazard zones:** hazard data requires connectivity and a configured backend (see `PolihackV18-hazard-location-detection-main/`).
+
+## Scripts
+
+```bash
+npm run start
+npm run android
+npm run ios
+npm run web
+npm run lint
+```
