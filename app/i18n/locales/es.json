@@ -1,0 +1,259 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "cached": "En caché",
+    "delete": "Eliminar",
+    "unknown": "Desconocido",
+    "update": "Actualizar",
+    "add": "Añadir"
+  },
+
+  "auth": {
+    "subtitle": "CUENTA CON ACCESO DE POR VIDA",
+    "emailPlaceholder": "Dirección de correo",
+    "passwordPlaceholder": "Contraseña",
+    "createAccount": "CREAR CUENTA",
+    "login": "INICIAR SESIÓN",
+    "alerts": {
+      "missingInfoTitle": "Faltan datos",
+      "missingInfoMessage": "Introduce correo y contraseña.",
+      "accountExistsTitle": "La cuenta ya existe",
+      "accountExistsMessage": "Este correo ya está registrado. Inicia sesión.",
+      "invalidEmailTitle": "Correo inválido",
+      "invalidEmailMessage": "Introduce una dirección de correo válida.",
+      "registrationFailedTitle": "Registro fallido",
+      "emailTakenDuringPayment": "Este correo se registró mientras estabas pagando.",
+      "loginFailedTitle": "Inicio de sesión fallido",
+      "loginFailedMessage": "Correo o contraseña incorrectos."
+    }
+  },
+
+  "language": {
+    "title": "Idioma",
+    "english": "Inglés",
+    "romanian": "Rumano",
+    "german": "Alemán",
+    "spanish": "Español",
+    "french": "Francés",
+    "italian": "Italiano",
+    "portuguese": "Portugués"
+  },
+
+  "paywall": {
+    "title": "DESBLOQUEA SENTINEL",
+    "subtitle": "PAGO ÚNICO • ACCESO DE POR VIDA",
+    "lifetimeSuffix": " / De por vida",
+    "securePayment": "Pago seguro SSL",
+    "payCta": "PAGA ${{price}} Y CREA CUENTA",
+    "features": {
+      "offlineMaps": {
+        "title": "Mapas sin conexión ilimitados",
+        "desc": "Descarga regiones enormes (100 km+) y datos globales."
+      },
+      "hazardAlerts": {
+        "title": "Alertas de peligro en vivo",
+        "desc": "Sincronización en tiempo real de zonas activas de desastre."
+      },
+      "ai": {
+        "title": "Asistente IA de Sentinel",
+        "desc": "Consultas ilimitadas para estrategias de supervivencia."
+      },
+      "backup": {
+        "title": "Copia de seguridad en la nube",
+        "desc": "Sincroniza de forma segura tus zonas seguras entre dispositivos."
+      }
+    }
+  },
+
+  "dashboard": {
+    "title": "PANEL",
+    "networkOnline": "● RED: EN LÍNEA",
+    "networkOffline": "○ RED: SIN CONEXIÓN",
+    "logout": "DESCONECTAR",
+    "modelDownload": "Descargando modelos de IA... {{percent}}%",
+    "cards": {
+      "manualsTitle": "Manuales universales de crisis",
+      "manualsSubtitle": "Guías completas para cualquier situación de supervivencia",
+      "mapTitle": "Mapa",
+      "aiTitle": "IA local de Sentinel",
+      "aiSubtitle": "Inteligencia en el dispositivo. Funciona 100% sin conexión.",
+      "vaultTitle": "Bóveda secreta",
+      "vaultSubtitle": "Documentos cifrados. Guardados localmente en el dispositivo."
+    },
+    "mapSubtitle": {
+      "caching": "Guardando en caché el paquete de terreno de {{km}} km...",
+      "offlineReady": "Listo sin conexión • {{radius}}",
+      "tapToConfigure": "Toca para configurar la descarga sin conexión"
+    },
+    "offlineCache": {
+      "title": "CACHÉ SIN CONEXIÓN",
+      "desc": "Introduce el radio de descarga (Mín: 20 km).",
+      "unitKm": "KM",
+      "estimatedStorage": "ALMACENAMIENTO ESTIMADO:",
+      "downloading": "Descargando terreno...",
+      "cancel": "CANCELAR",
+      "download": "DESCARGAR"
+    },
+    "alerts": {
+      "updateOfflineMapTitle": "¿Actualizar el mapa sin conexión?",
+      "updateOfflineMapMessage": "Esto eliminará la caché existente del mapa y descargará un área nueva.",
+      "cacheClearedTitle": "Caché borrada",
+      "cacheClearedMessage": "Ahora puedes descargar un área nueva.",
+      "minRadiusTitle": "Se requiere un radio mínimo",
+      "minRadiusMessage": "Introduce al menos 20 km para garantizar una cobertura segura.",
+      "permissionDeniedTitle": "Permiso denegado",
+      "permissionDeniedMessage": "Se requiere acceso a la ubicación.",
+      "downloadFailedTitle": "Descarga fallida",
+      "downloadFailedMessage": "Comprueba la conexión o el almacenamiento."
+    }
+  },
+
+  "map": {
+    "headerTitle": "Mapa de Sentinel",
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "O"
+    },
+    "status": {
+      "offlineCache": "Caché sin conexión: {{radius}}",
+      "onlineMode": "Modo en línea",
+      "hazardsActive": "• Peligros activos",
+      "hazardsHidden": "• Peligros ocultos"
+    },
+    "hazard": {
+      "defaultType": "Peligro",
+      "unknownAlert": "Alerta desconocida"
+    },
+    "hazardCard": {
+      "typeFallback": "PELIGRO",
+      "severityPrefix": "SEVERIDAD:",
+      "severityUnknown": "DESCONOCIDA",
+      "lat": "Lat",
+      "lng": "Lng"
+    }
+  },
+
+  "vault": {
+    "title": "Bóveda secreta",
+    "viewerTitle": "Visor de documentos",
+    "info": "Los archivos se cifran con AES-256 y se almacenan solo en este dispositivo.",
+    "processing": "Procesando el cifrado...",
+    "upload": "Subir",
+    "encryptedStored": "Cifrado y guardado",
+    "alerts": {
+      "securedTitle": "Protegido",
+      "securedMessage": "Documento cifrado y almacenado localmente.",
+      "errorTitle": "Error",
+      "encryptFailed": "No se pudo cifrar el documento.",
+      "decryptFailed": "No se pudo descifrar el archivo.",
+      "shareFailed": "No se pudo compartir el archivo",
+      "loadPdfFailed": "No se pudo cargar el PDF",
+      "deleteTitle": "Eliminar documento",
+      "deleteMessage": "Esto eliminará permanentemente el archivo cifrado."
+    },
+    "docs": {
+      "1": { "title": "Documento de identidad", "subtitle": "Pasaporte, carnet de conducir, DNI" },
+      "2": { "title": "Historial médico", "subtitle": "Recetas, grupo sanguíneo, historial" },
+      "3": { "title": "Pólizas de seguro", "subtitle": "Hogar, auto, vida, salud" },
+      "4": { "title": "Documentos de propiedad", "subtitle": "Escrituras, contratos, títulos" },
+      "5": { "title": "Documentos financieros", "subtitle": "Cuentas bancarias, tarjetas" },
+      "6": { "title": "Documentos legales", "subtitle": "Testamentos, poderes notariales" }
+    }
+  },
+
+  "manuals": {
+    "loading": "Cargando manuales...",
+    "title": "Manuales de supervivencia",
+    "searchPlaceholder": "Buscar manuales (semántico)...",
+    "warningSigns": "Señales de advertencia",
+    "protectiveMeasures": "Medidas de protección"
+  },
+
+  "chat": {
+    "headerSubtitle": "SISTEMA DE RESPUESTA A CRISIS",
+    "systemPrompt": "Eres Sentinel, un asistente experto en supervivencia.\nTu objetivo es proporcionar consejos claros, concisos y que salvan vidas durante emergencias.\nPrioriza la seguridad, la precisión y la calma.\nUsa el contexto proporcionado para responder a las preguntas.",
+    "alerts": {
+      "errorTitle": "Error",
+      "searchFailed": "No se pudieron buscar los documentos. Inténtalo de nuevo."
+    },
+    "loading": {
+      "title": "Cargando modelos...",
+      "llmProgress": "Progreso de descarga del LLM: {{percent}}%",
+      "embeddingsProgress": "Progreso de descarga de embeddings: {{percent}}%",
+      "downloadingLlm": "Descargando el modelo LLM...",
+      "initializing": "Inicializando modelos..."
+    },
+    "empty": {
+      "title": "¡Hola! 👋",
+      "subtitle": "¿En qué puedo ayudarte?"
+    },
+    "input": {
+      "placeholder": "Escribe tu mensaje...",
+      "send": "Enviar"
+    },
+    "thinking": "Pensando..."
+  },
+
+  "documentModal": {
+    "titleUpdate": "Actualizar documento",
+    "titleAdd": "Añadir documento",
+    "placeholder": "Introduce aquí el texto del documento...",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "add": "Añadir"
+  },
+
+  "credits": {
+    "title": "Créditos y atribuciones",
+    "intro": "Sentinel está construido con software de código abierto y APIs públicas gratuitas. Agradecemos a los siguientes proveedores:",
+    "sections": {
+      "hazardApis": "APIs de datos de peligros",
+      "mapping": "Mapas y ubicación",
+      "ai": "Inteligencia e IA",
+      "infrastructure": "Infraestructura",
+      "content": "Contenido"
+    },
+    "items": {
+      "gdacs": "Sistema global de alerta y coordinación de desastres",
+      "usgs": "Datos de terremotos en tiempo real",
+      "eonet": "Rastreador de eventos naturales (Earth Observatory)",
+      "copernicus": "Servicio de gestión de emergencias",
+      "reliefweb": "Servicio de información humanitaria",
+      "emsc": "Centro Sismológico Euro-Mediterráneo",
+      "maplibre": "Biblioteca de mapas de código abierto",
+      "osm": "Colaboradores de datos del mapa",
+      "executorch": "Inferencia de IA en el dispositivo (PyTorch)",
+      "rag": "Generación aumentada por recuperación local",
+      "firebase": "Backend y funciones en la nube",
+      "expo": "Framework de React Native",
+      "manuals": "Adaptado de protocolos estándar de seguridad (FEMA, Cruz Roja, etc.)"
+    },
+    "footer": "Sentinel v1.0"
+  },
+
+  "consent": {
+    "alertTitle": "Acción requerida",
+    "alertMessage": "Debes aceptar los términos para usar Sentinel.",
+    "title": "Consentimiento legal",
+    "subtitle": "Revisa nuestros términos de servicio y la política de privacidad.",
+    "sections": {
+      "liabilityTitle": "1. Exención de responsabilidad",
+      "liabilityBody": "Sentinel es una herramienta informativa diseñada para ayudar en la preparación ante emergencias y la conciencia situacional. NO sustituye a los servicios de emergencia profesionales (911, 112, etc.) ni a las alertas oficiales del gobierno. Los desarrolladores de Sentinel no asumen responsabilidad por lesiones, daños o pérdidas derivadas del uso o mal uso de esta aplicación.",
+      "accuracyTitle": "2. Exactitud de los datos",
+      "accuracyBody": "Los datos de peligros, mapas y manuales de supervivencia se agregan de fuentes de terceros (p. ej., USGS, GDACS, OpenStreetMap). Aunque buscamos la precisión, no podemos garantizar la exactitud en tiempo real ni la integridad de estos datos. Verifica siempre la información con autoridades locales oficiales.",
+      "aiTitle": "3. Limitaciones del asistente de IA",
+      "aiBody": "Sentinel Local AI es un modelo de inteligencia artificial que se ejecuta en tu dispositivo. En ocasiones puede generar información incorrecta o engañosa (alucinaciones). No te bases únicamente en la IA para decisiones médicas críticas o de vida o muerte.",
+      "vaultTitle": "4. Bóveda secreta y seguridad de datos",
+      "vaultBody": "La Bóveda secreta almacena tus documentos sensibles (p. ej., pasaportes, historiales médicos) localmente en tu dispositivo usando cifrado. No tenemos acceso a estos documentos. Eres el único responsable de asegurar tu dispositivo. No somos responsables del acceso no autorizado a tus datos si tu dispositivo se pierde, es robado o comprometido.",
+      "privacyTitle": "5. Política de privacidad",
+      "privacyBody": "Priorizamos tu privacidad.\n- Los datos de ubicación se procesan localmente para renderizar el mapa y las alertas de peligro.\n- Los documentos de la Bóveda secreta se cifran y se almacenan en tu dispositivo.\n- No vendemos tus datos personales a terceros.\n- La información de la cuenta (correo) se usa solo para autenticación.",
+      "acceptanceTitle": "6. Aceptación de los términos",
+      "acceptanceBody": "Al pulsar Acepto, confirmas que has leído, entendido y aceptado estos términos. Aceptas usar Sentinel de forma responsable y bajo tu propio riesgo."
+    },
+    "decline": "RECHAZAR",
+    "accept": "ACEPTO"
+  }
+}

@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import 'react-native-get-random-values';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  Alert, 
-  ActivityIndicator, 
-  StatusBar,
-  Modal
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { File, Directory, Paths } from 'expo-file-system';
-import * as DocumentPicker from 'expo-document-picker';
-import * as Sharing from 'expo-sharing';
 import CryptoJS from 'crypto-js';
 import * as Random from 'expo-crypto';
+import * as DocumentPicker from 'expo-document-picker';
+import { Directory, File, Paths } from 'expo-file-system';
+import { useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import 'react-native-get-random-values';
 import Pdf from 'react-native-pdf';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from './constants/colors';
 
 // Override CryptoJS random number generator to use expo-crypto
 // This fixes "crypto module could not be used to get secure random number"
@@ -37,8 +39,6 @@ CryptoJS.lib.WordArray.random = (nBytes) => {
   return CryptoJS.lib.WordArray.create(words, nBytes);
 };
 
-import { COLORS } from './constants/colors';
-
 // --- CONFIGURATION ---
 const VAULT_DIR = new Directory(Paths.document, 'sentinel_vault');
 // In a real app, fetch this from SecureStore or generate uniquely per user
@@ -47,8 +47,6 @@ const ENCRYPTION_KEY = 'my-secret-sentinel-key-123';
 // --- TYPES ---
 interface VaultDoc {
   id: string;
-  title: string;
-  subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
   status: 'missing' | 'secured';
   fileName: string | null; // The encrypted filename on disk
@@ -57,16 +55,17 @@ interface VaultDoc {
 
 // --- INITIAL DATA ---
 const REQUIRED_DOCS: VaultDoc[] = [
-  { id: '1', title: 'Personal ID', subtitle: 'Passport, Driver License, ID Card', icon: 'id-card-outline', status: 'missing', fileName: null, mimeType: null },
-  { id: '2', title: 'Medical Records', subtitle: 'Prescriptions, Blood Type, History', icon: 'medkit-outline', status: 'missing', fileName: null, mimeType: null },
-  { id: '3', title: 'Insurance Policies', subtitle: 'Home, Auto, Life, Health', icon: 'shield-checkmark-outline', status: 'missing', fileName: null, mimeType: null },
-  { id: '4', title: 'Property Documents', subtitle: 'Deeds, Leases, Titles', icon: 'home-outline', status: 'missing', fileName: null, mimeType: null },
-  { id: '5', title: 'Financial Records', subtitle: 'Bank Accounts, Credit Cards', icon: 'card-outline', status: 'missing', fileName: null, mimeType: null },
-  { id: '6', title: 'Legal Documents', subtitle: 'Wills, Power of Attorney', icon: 'document-text-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '1', icon: 'id-card-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '2', icon: 'medkit-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '3', icon: 'shield-checkmark-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '4', icon: 'home-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '5', icon: 'card-outline', status: 'missing', fileName: null, mimeType: null },
+  { id: '6', icon: 'document-text-outline', status: 'missing', fileName: null, mimeType: null }
 ];
 
 export default function SecretVaultScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [docs, setDocs] = useState<VaultDoc[]>(REQUIRED_DOCS);
   const [loading, setLoading] = useState(false);
   const [pdfViewerVisible, setPdfViewerVisible] = useState(false);
@@ -159,11 +158,11 @@ export default function SecretVaultScreen() {
           : doc
       ));
 
-      Alert.alert("Secured", "Document encrypted and stored locally.");
+      Alert.alert(t('vault.alerts.securedTitle'), t('vault.alerts.securedMessage'));
 
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to encrypt document.");
+      Alert.alert(t('vault.alerts.errorTitle'), t('vault.alerts.encryptFailed'));
     } finally {
       setLoading(false);
     }
@@ -200,8 +199,8 @@ export default function SecretVaultScreen() {
       setPdfSource(tempFile.uri);
       setPdfViewerVisible(true);
 
-    } catch (error) {
-      Alert.alert("Error", "Could not decrypt file.");
+    } catch {
+      Alert.alert(t('vault.alerts.errorTitle'), t('vault.alerts.decryptFailed'));
     } finally {
       setLoading(false);
     }
@@ -211,16 +210,16 @@ export default function SecretVaultScreen() {
     if (pdfSource) {
       try {
         await Sharing.shareAsync(pdfSource);
-      } catch (error) {
-        Alert.alert('Error', 'Could not share file');
+      } catch {
+        Alert.alert(t('vault.alerts.errorTitle'), t('vault.alerts.shareFailed'));
       }
     }
   };
 
   const handleDelete = (docId: string) => {
-    Alert.alert("Delete Document", "This will permanently remove the encrypted file.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => {
+    Alert.alert(t('vault.alerts.deleteTitle'), t('vault.alerts.deleteMessage'), [
+      { text: t('common.cancel'), style: "cancel" },
+      { text: t('common.delete'), style: "destructive", onPress: async () => {
           const doc = docs.find(d => d.id === docId);
           if (doc?.fileName) {
             const file = new File(VAULT_DIR, doc.fileName);
@@ -237,6 +236,8 @@ export default function SecretVaultScreen() {
 
   const renderItem = ({ item }: { item: VaultDoc }) => {
     const isSecured = item.status === 'secured';
+    const title = t(`vault.docs.${item.id}.title`);
+    const subtitle = isSecured ? t('vault.encryptedStored') : t(`vault.docs.${item.id}.subtitle`);
 
     return (
       <View style={[styles.card, isSecured && styles.lockedCard]}>
@@ -249,8 +250,8 @@ export default function SecretVaultScreen() {
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={[styles.title, isSecured && styles.lockedText]}>{item.title}</Text>
-          <Text style={styles.subtitle}>{isSecured ? 'Encrypted & Stored' : item.subtitle}</Text>
+          <Text style={[styles.title, isSecured && styles.lockedText]}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
 
         <View style={styles.cardRight}>
@@ -268,7 +269,7 @@ export default function SecretVaultScreen() {
               onPress={() => handleUpload(item.id)}
               style={styles.uploadBtn}
             >
-              <Text style={styles.uploadBtnText}>Upload</Text>
+              <Text style={styles.uploadBtnText}>{t('vault.upload')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -285,7 +286,7 @@ export default function SecretVaultScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Secret Vault</Text>
+        <Text style={styles.headerTitle}>{t('vault.title')}</Text>
         <View style={{ width: 24 }} /> 
       </View>
       {/* PDF VIEWER MODAL */}
@@ -299,7 +300,7 @@ export default function SecretVaultScreen() {
             <TouchableOpacity onPress={() => setPdfViewerVisible(false)} style={styles.backButton}>
               <Ionicons name="close" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Document Viewer</Text>
+            <Text style={styles.headerTitle}>{t('vault.viewerTitle')}</Text>
             <TouchableOpacity onPress={handleShare} style={styles.backButton}>
               <Ionicons name="share-outline" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>
@@ -310,7 +311,7 @@ export default function SecretVaultScreen() {
               style={{flex:1, backgroundColor: COLORS.background}}
               onError={(error) => {
                 console.log(error);
-                Alert.alert('Error', 'Could not load PDF');
+                Alert.alert(t('vault.alerts.errorTitle'), t('vault.alerts.loadPdfFailed'));
               }}
             />
           )}
@@ -327,7 +328,7 @@ export default function SecretVaultScreen() {
           <View style={styles.infoBox}>
             <Ionicons name="shield-checkmark" size={20} color={COLORS.secondary} style={{marginRight: 8}}/>
             <Text style={styles.infoText}>
-              Files are encrypted with AES-256 and stored only on this device.
+              {t('vault.info')}
             </Text>
           </View>
         }
@@ -336,7 +337,7 @@ export default function SecretVaultScreen() {
       {loading && (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={{color: COLORS.textPrimary, marginTop: 10}}>Processing Encryption...</Text>
+          <Text style={{color: COLORS.textPrimary, marginTop: 10}}>{t('vault.processing')}</Text>
         </View>
       )}
     </SafeAreaView>

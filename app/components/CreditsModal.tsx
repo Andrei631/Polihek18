@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { COLORS } from '../../constants/theme';
 
@@ -9,6 +10,8 @@ interface CreditsModalProps {
 }
 
 export function CreditsModal({ visible, onClose }: CreditsModalProps) {
+  const { t } = useTranslation();
+
   const openLink = (url: string) => {
     Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
   };
@@ -43,7 +46,7 @@ export function CreditsModal({ visible, onClose }: CreditsModalProps) {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Credits & Attributions</Text>
+            <Text style={styles.title}>{t('credits.title')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>
@@ -51,39 +54,39 @@ export function CreditsModal({ visible, onClose }: CreditsModalProps) {
           
           <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
             <Text style={styles.intro}>
-              Sentinel is built using open-source software and free public APIs. We acknowledge and thank the following providers:
+              {t('credits.intro')}
             </Text>
 
-            {renderSection("Hazard Data APIs", [
-              { name: "GDACS", url: "https://www.gdacs.org/", description: "Global Disaster Alert and Coordination System" },
-              { name: "USGS Earthquake Hazards Program", url: "https://earthquake.usgs.gov/", description: "Real-time earthquake data" },
-              { name: "NASA EONET", url: "https://eonet.gsfc.nasa.gov/", description: "Earth Observatory Natural Event Tracker" },
-              { name: "Copernicus EMS", url: "https://emergency.copernicus.eu/", description: "Emergency Management Service" },
-              { name: "ReliefWeb", url: "https://reliefweb.int/", description: "Humanitarian information service" },
-              { name: "EMSC", url: "https://www.emsc-csem.org/", description: "European-Mediterranean Seismological Centre" },
+            {renderSection(t('credits.sections.hazardApis'), [
+              { name: "GDACS", url: "https://www.gdacs.org/", description: t('credits.items.gdacs') },
+              { name: "USGS Earthquake Hazards Program", url: "https://earthquake.usgs.gov/", description: t('credits.items.usgs') },
+              { name: "NASA EONET", url: "https://eonet.gsfc.nasa.gov/", description: t('credits.items.eonet') },
+              { name: "Copernicus EMS", url: "https://emergency.copernicus.eu/", description: t('credits.items.copernicus') },
+              { name: "ReliefWeb", url: "https://reliefweb.int/", description: t('credits.items.reliefweb') },
+              { name: "EMSC", url: "https://www.emsc-csem.org/", description: t('credits.items.emsc') },
             ])}
 
-            {renderSection("Mapping & Location", [
-              { name: "MapLibre React Native", url: "https://github.com/maplibre/maplibre-react-native", description: "Open-source mapping library" },
-              { name: "OpenStreetMap", url: "https://www.openstreetmap.org/", description: "Map data contributors" },
+            {renderSection(t('credits.sections.mapping'), [
+              { name: "MapLibre React Native", url: "https://github.com/maplibre/maplibre-react-native", description: t('credits.items.maplibre') },
+              { name: "OpenStreetMap", url: "https://www.openstreetmap.org/", description: t('credits.items.osm') },
             ])}
 
-            {renderSection("Intelligence & AI", [
-              { name: "ExecuTorch", url: "https://pytorch.org/executorch-overview", description: "On-device AI inference by PyTorch" },
-              { name: "React Native RAG", description: "Local Retrieval-Augmented Generation" },
+            {renderSection(t('credits.sections.ai'), [
+              { name: "ExecuTorch", url: "https://pytorch.org/executorch-overview", description: t('credits.items.executorch') },
+              { name: "React Native RAG", description: t('credits.items.rag') },
             ])}
 
-            {renderSection("Infrastructure", [
-              { name: "Firebase", url: "https://firebase.google.com/", description: "Backend and cloud functions" },
-              { name: "Expo", url: "https://expo.dev/", description: "React Native framework" },
+            {renderSection(t('credits.sections.infrastructure'), [
+              { name: "Firebase", url: "https://firebase.google.com/", description: t('credits.items.firebase') },
+              { name: "Expo", url: "https://expo.dev/", description: t('credits.items.expo') },
             ])}
             
-             {renderSection("Content", [
-              { name: "Survival Manuals", description: "Adapted from standard safety protocols (FEMA, Red Cross, etc.)" },
+             {renderSection(t('credits.sections.content'), [
+              { name: "Survival Manuals", description: t('credits.items.manuals') },
             ])}
             
             <View style={styles.footer}>
-                <Text style={styles.footerText}>Sentinel v1.0</Text>
+                <Text style={styles.footerText}>{t('credits.footer')}</Text>
             </View>
           </ScrollView>
         </View>

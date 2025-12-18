@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { type Message } from 'react-native-rag';
@@ -14,6 +15,8 @@ export function MessagesList({
   response,
   isGenerating,
 }: MessagesListProps) {
+  const { t } = useTranslation();
+
   const renderMessage = ({ item }: { item: Message }) => (
     <View
       style={[
@@ -59,7 +62,7 @@ export function MessagesList({
             ) : (
               <View style={messageStyles.thinkingContainer}>
                 <ActivityIndicator size="small" color={COLORS.accent} />
-                <Text style={messageStyles.thinkingText}>Thinking...</Text>
+                <Text style={messageStyles.thinkingText}>{t('chat.thinking')}</Text>
               </View>
             )}
           </View>

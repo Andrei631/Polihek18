@@ -1,0 +1,259 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "cached": "Cached",
+    "delete": "Delete",
+    "unknown": "Unknown",
+    "update": "Update",
+    "add": "Add"
+  },
+
+  "auth": {
+    "subtitle": "LIFETIME ACCESS ACCOUNT",
+    "emailPlaceholder": "Email Address",
+    "passwordPlaceholder": "Password",
+    "createAccount": "CREATE ACCOUNT",
+    "login": "LOGIN",
+    "alerts": {
+      "missingInfoTitle": "Missing Info",
+      "missingInfoMessage": "Please enter both email and password.",
+      "accountExistsTitle": "Account Exists",
+      "accountExistsMessage": "This email is already registered. Please log in.",
+      "invalidEmailTitle": "Invalid Email",
+      "invalidEmailMessage": "Please enter a valid email address.",
+      "registrationFailedTitle": "Registration Failed",
+      "emailTakenDuringPayment": "This email was taken while you were paying.",
+      "loginFailedTitle": "Login Failed",
+      "loginFailedMessage": "Incorrect email or password."
+    }
+  },
+
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "romanian": "Romanian",
+    "german": "German",
+    "spanish": "Spanish",
+    "french": "French",
+    "italian": "Italian",
+    "portuguese": "Portuguese"
+  },
+
+  "paywall": {
+    "title": "UNLOCK SENTINEL",
+    "subtitle": "ONE-TIME PAYMENT • LIFETIME ACCESS",
+    "lifetimeSuffix": " / Lifetime",
+    "securePayment": "Secure SSL Payment",
+    "payCta": "PAY ${{price}} & CREATE ACCOUNT",
+    "features": {
+      "offlineMaps": {
+        "title": "Unlimited Offline Maps",
+        "desc": "Download massive regions (100km+) & global data."
+      },
+      "hazardAlerts": {
+        "title": "Live Hazard Alerts",
+        "desc": "Real-time sync of active disaster zones."
+      },
+      "ai": {
+        "title": "Sentinel AI Assistant",
+        "desc": "Unlimited queries for survival strategies."
+      },
+      "backup": {
+        "title": "Cloud Backup",
+        "desc": "Securely sync your safe zones across devices."
+      }
+    }
+  },
+
+  "dashboard": {
+    "title": "DASHBOARD",
+    "networkOnline": "● NETWORK: ONLINE",
+    "networkOffline": "○ NETWORK: OFFLINE",
+    "logout": "DISCONNECT",
+    "modelDownload": "Downloading AI Models... {{percent}}%",
+    "cards": {
+      "manualsTitle": "Universal Crisis Manuals",
+      "manualsSubtitle": "Comprehensive guides for any survival condition",
+      "mapTitle": "Map",
+      "aiTitle": "Sentinel Local AI",
+      "aiSubtitle": "On-device intelligence. Works 100% offline.",
+      "vaultTitle": "Secret Vault",
+      "vaultSubtitle": "Encrypted documents. Stored locally on-device."
+    },
+    "mapSubtitle": {
+      "caching": "Caching {{km}}km terrain packet...",
+      "offlineReady": "Offline Ready • {{radius}}",
+      "tapToConfigure": "Tap to configure offline download"
+    },
+    "offlineCache": {
+      "title": "OFFLINE CACHE",
+      "desc": "Enter download radius (Min: 20km).",
+      "unitKm": "KM",
+      "estimatedStorage": "ESTIMATED STORAGE:",
+      "downloading": "Downloading Terrain...",
+      "cancel": "CANCEL",
+      "download": "DOWNLOAD"
+    },
+    "alerts": {
+      "updateOfflineMapTitle": "Update Offline Map?",
+      "updateOfflineMapMessage": "This will delete the existing map cache and download a new area.",
+      "cacheClearedTitle": "Cache Cleared",
+      "cacheClearedMessage": "You can now download a new area.",
+      "minRadiusTitle": "Minimum Radius Required",
+      "minRadiusMessage": "Please enter at least 20km to ensure safe coverage.",
+      "permissionDeniedTitle": "Permission denied",
+      "permissionDeniedMessage": "Location access is required.",
+      "downloadFailedTitle": "Download Failed",
+      "downloadFailedMessage": "Check internet connection or storage."
+    }
+  },
+
+  "map": {
+    "headerTitle": "Sentinel Map",
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "W"
+    },
+    "status": {
+      "offlineCache": "Offline Cache: {{radius}}",
+      "onlineMode": "Online Mode",
+      "hazardsActive": "• Hazards Active",
+      "hazardsHidden": "• Hazards Hidden"
+    },
+    "hazard": {
+      "defaultType": "Hazard",
+      "unknownAlert": "Unknown Alert"
+    },
+    "hazardCard": {
+      "typeFallback": "HAZARD",
+      "severityPrefix": "SEVERITY:",
+      "severityUnknown": "UNKNOWN",
+      "lat": "Lat",
+      "lng": "Lng"
+    }
+  },
+
+  "vault": {
+    "title": "Secret Vault",
+    "viewerTitle": "Document Viewer",
+    "info": "Files are encrypted with AES-256 and stored only on this device.",
+    "processing": "Processing Encryption...",
+    "upload": "Upload",
+    "encryptedStored": "Encrypted & Stored",
+    "alerts": {
+      "securedTitle": "Secured",
+      "securedMessage": "Document encrypted and stored locally.",
+      "errorTitle": "Error",
+      "encryptFailed": "Failed to encrypt document.",
+      "decryptFailed": "Could not decrypt file.",
+      "shareFailed": "Could not share file",
+      "loadPdfFailed": "Could not load PDF",
+      "deleteTitle": "Delete Document",
+      "deleteMessage": "This will permanently remove the encrypted file."
+    },
+    "docs": {
+      "1": { "title": "Personal ID", "subtitle": "Passport, Driver License, ID Card" },
+      "2": { "title": "Medical Records", "subtitle": "Prescriptions, Blood Type, History" },
+      "3": { "title": "Insurance Policies", "subtitle": "Home, Auto, Life, Health" },
+      "4": { "title": "Property Documents", "subtitle": "Deeds, Leases, Titles" },
+      "5": { "title": "Financial Records", "subtitle": "Bank Accounts, Credit Cards" },
+      "6": { "title": "Legal Documents", "subtitle": "Wills, Power of Attorney" }
+    }
+  },
+
+  "manuals": {
+    "loading": "Loading manuals...",
+    "title": "Survival Manuals",
+    "searchPlaceholder": "Search manuals (Semantic)...",
+    "warningSigns": "Warning Signs",
+    "protectiveMeasures": "Protective Measures"
+  },
+
+  "chat": {
+    "headerSubtitle": "CRISIS RESPONSE SYSTEM",
+    "systemPrompt": "You are Sentinel, an expert survival assistant.\nYour goal is to provide clear, concise, and life-saving advice during emergencies.\nPrioritize safety, accuracy, and calmness.\nUse the provided context to answer questions.",
+    "alerts": {
+      "errorTitle": "Error",
+      "searchFailed": "Failed to search documents. Please try again."
+    },
+    "loading": {
+      "title": "Loading Models...",
+      "llmProgress": "LLM Download Progress: {{percent}}%",
+      "embeddingsProgress": "Embeddings Download Progress: {{percent}}%",
+      "downloadingLlm": "Downloading LLM model...",
+      "initializing": "Initializing models..."
+    },
+    "empty": {
+      "title": "Hello! 👋",
+      "subtitle": "What can I help you with?"
+    },
+    "input": {
+      "placeholder": "Type your message...",
+      "send": "Send"
+    },
+    "thinking": "Thinking..."
+  },
+
+  "documentModal": {
+    "titleUpdate": "Update Document",
+    "titleAdd": "Add Document",
+    "placeholder": "Enter your document text here...",
+    "cancel": "Cancel",
+    "update": "Update",
+    "add": "Add"
+  },
+
+  "credits": {
+    "title": "Credits & Attributions",
+    "intro": "Sentinel is built using open-source software and free public APIs. We acknowledge and thank the following providers:",
+    "sections": {
+      "hazardApis": "Hazard Data APIs",
+      "mapping": "Mapping & Location",
+      "ai": "Intelligence & AI",
+      "infrastructure": "Infrastructure",
+      "content": "Content"
+    },
+    "items": {
+      "gdacs": "Global Disaster Alert and Coordination System",
+      "usgs": "Real-time earthquake data",
+      "eonet": "Earth Observatory Natural Event Tracker",
+      "copernicus": "Emergency Management Service",
+      "reliefweb": "Humanitarian information service",
+      "emsc": "European-Mediterranean Seismological Centre",
+      "maplibre": "Open-source mapping library",
+      "osm": "Map data contributors",
+      "executorch": "On-device AI inference by PyTorch",
+      "rag": "Local Retrieval-Augmented Generation",
+      "firebase": "Backend and cloud functions",
+      "expo": "React Native framework",
+      "manuals": "Adapted from standard safety protocols (FEMA, Red Cross, etc.)"
+    },
+    "footer": "Sentinel v1.0"
+  },
+
+  "consent": {
+    "alertTitle": "Action Required",
+    "alertMessage": "You must accept the terms to use Sentinel.",
+    "title": "Legal Consent",
+    "subtitle": "Please review our terms of service and privacy policy.",
+    "sections": {
+      "liabilityTitle": "1. Disclaimer of Liability",
+      "liabilityBody": "Sentinel is an informational tool designed to assist in emergency preparedness and situational awareness. It is NOT a substitute for professional emergency services (911, 112, etc.) or official government alerts. The developers of Sentinel assume no liability for any injuries, damages, or losses resulting from the use or misuse of this application.",
+      "accuracyTitle": "2. Data Accuracy",
+      "accuracyBody": "Hazard data, maps, and survival manuals are aggregated from third-party sources (e.g., USGS, GDACS, OpenStreetMap). While we strive for accuracy, we cannot guarantee the real-time precision or completeness of this data. Always verify information with official local authorities.",
+      "aiTitle": "3. AI Assistant Limitations",
+      "aiBody": "The Sentinel Local AI is an artificial intelligence model running on your device. It may occasionally generate incorrect or misleading information (hallucinations). Do not rely solely on the AI for critical medical or life-and-death decisions.",
+      "vaultTitle": "4. Secret Vault & Data Security",
+      "vaultBody": "The Secret Vault stores your sensitive documents (e.g., passports, medical records) locally on your device using encryption. We do not have access to these documents. You are solely responsible for securing your device. We are not liable for any unauthorized access to your data if your device is lost, stolen, or compromised.",
+      "privacyTitle": "5. Privacy Policy",
+      "privacyBody": "We prioritize your privacy.\n- Location data is processed locally for map rendering and hazard alerts.\n- Secret Vault documents are encrypted and stored on your device.\n- We do not sell your personal data to third parties.\n- Account information (email) is used solely for authentication.",
+      "acceptanceTitle": "6. Acceptance of Terms",
+      "acceptanceBody": "By clicking I Accept, you acknowledge that you have read, understood, and agreed to these terms. You agree to use Sentinel responsibly and at your own risk."
+    },
+    "decline": "DECLINE",
+    "accept": "I ACCEPT"
+  }
+}

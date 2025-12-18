@@ -1,15 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Camera,
-  CircleLayer,
-  MapView,
-  ShapeSource,
-  UserLocation,
+    Camera,
+    CircleLayer,
+    MapView,
+    ShapeSource,
+    UserLocation,
 } from "@maplibre/maplibre-react-native";
-import { getFirestore, collection, onSnapshot } from '@react-native-firebase/firestore';
+import { collection, getFirestore, onSnapshot } from '@react-native-firebase/firestore';
 import * as Location from "expo-location";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants/theme";
@@ -21,6 +22,7 @@ const CAMERA_DEFAULTS = {
 
 export default function MapScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const isPremium = params.isPremium === "true";
   const downloadedRadius = params.downloadedRadius;
@@ -140,8 +142,8 @@ export default function MapScreen() {
                   id: doc.id, 
                   properties: { 
                     severity: data.severity || 'high', 
-                    type: data.type || 'Hazard',
-                    title: data.title || 'Unknown Alert',
+                    type: data.type || t('map.hazard.defaultType'),
+                    title: data.title || t('map.hazard.unknownAlert'),
                     timestamp: data.timestamp
                   },
                   geometry: { 
@@ -162,7 +164,7 @@ export default function MapScreen() {
       );
 
     return () => subscriber();
-  }, []);
+  }, [t]);
 
   const handleCenterOnUser = () => {
     if (!userLocation || !cameraRef.current) {
@@ -297,15 +299,15 @@ export default function MapScreen() {
             <View style={styles.hazardHeader}>
                 <Ionicons name="warning" size={24} color="#FFF" />
                 <Text style={styles.hazardTitle}>
-                    {selectedFeature.properties.type?.toUpperCase() || "HAZARD"}
+              {selectedFeature.properties.type?.toUpperCase() || t('map.hazardCard.typeFallback')}
                 </Text>
             </View>
             <Text style={styles.hazardSeverity}>
-                SEVERITY: {selectedFeature.properties.severity?.toUpperCase() || "UNKNOWN"}
+            {t('map.hazardCard.severityPrefix')} {selectedFeature.properties.severity?.toUpperCase() || t('map.hazardCard.severityUnknown')}
             </Text>
             <Text style={styles.hazardCoordinates}>
-                Lat: {selectedFeature.geometry.coordinates[1].toFixed(4)}, 
-                Lng: {selectedFeature.geometry.coordinates[0].toFixed(4)}
+            {t('map.hazardCard.lat')}: {selectedFeature.geometry.coordinates[1].toFixed(4)}, 
+            {t('map.hazardCard.lng')}: {selectedFeature.geometry.coordinates[0].toFixed(4)}
             </Text>
             <TouchableOpacity 
                 style={styles.closeCardButton}
@@ -322,10 +324,10 @@ export default function MapScreen() {
             {[...Array(28)].map((_, i) => (
                 <View key={i} style={[styles.tickLine, { transform: [{ rotate: `${i * (360 / 28)}deg` }] }]} />
             ))}
-            <Text style={[styles.compassLabel, styles.labelN]}>N</Text>
-            <Text style={[styles.compassLabel, styles.labelE]}>E</Text>
-            <Text style={[styles.compassLabel, styles.labelS]}>S</Text>
-            <Text style={[styles.compassLabel, styles.labelW]}>W</Text>
+            <Text style={[styles.compassLabel, styles.labelN]}>{t('map.compass.n')}</Text>
+            <Text style={[styles.compassLabel, styles.labelE]}>{t('map.compass.e')}</Text>
+            <Text style={[styles.compassLabel, styles.labelS]}>{t('map.compass.s')}</Text>
+            <Text style={[styles.compassLabel, styles.labelW]}>{t('map.compass.w')}</Text>
             <View style={styles.centerDot} />
         </Animated.View>
         <View style={styles.headingMarker} />
@@ -335,7 +337,7 @@ export default function MapScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Sentinel Map</Text>
+        <Text style={styles.headerTitle}>{t('map.headerTitle')}</Text>
       </View>
 
       <TouchableOpacity style={styles.fab} onPress={handleCenterOnUser}>
@@ -352,10 +354,12 @@ export default function MapScreen() {
 
       <View style={styles.statusBar}>
         <Text style={styles.statusText}>
-          {downloadedRadius ? `Offline Cache: ${downloadedRadius}` : "Online Mode"}
+          {downloadedRadius
+            ? t('map.status.offlineCache', { radius: downloadedRadius })
+            : t('map.status.onlineMode')}
         </Text>
         <Text style={[styles.statusText, { color: isPremium ? COLORS.success : COLORS.textSecondary }]}>
-          {isPremium ? "• Hazards Active" : "• Hazards Hidden"}
+          {isPremium ? t('map.status.hazardsActive') : t('map.status.hazardsHidden')}
         </Text>
       </View>
 

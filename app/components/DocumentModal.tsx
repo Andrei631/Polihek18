@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
     Modal,
     StyleSheet,
@@ -25,6 +26,8 @@ export function DocumentModal({
   onDocumentChange,
   onModifyDocument,
 }: DocumentModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal
       visible={visible}
@@ -35,13 +38,13 @@ export function DocumentModal({
       <View style={modalStyles.overlay}>
         <View style={modalStyles.container}>
           <Text style={modalStyles.title}>
-            {ids.length ? 'Update Document' : 'Add Document'}
+            {ids.length ? t('documentModal.titleUpdate') : t('documentModal.titleAdd')}
           </Text>
           <TextInput
             style={modalStyles.input}
             value={document}
             onChangeText={onDocumentChange}
-            placeholder="Enter your document text here..."
+            placeholder={t('documentModal.placeholder')}
             placeholderTextColor={COLORS.textSecondary}
             multiline
             numberOfLines={10}
@@ -52,14 +55,14 @@ export function DocumentModal({
               onPress={onClose}
               style={[modalStyles.button, modalStyles.cancelButton]}
             >
-              <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+              <Text style={modalStyles.cancelButtonText}>{t('documentModal.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onModifyDocument}
               style={[modalStyles.button, modalStyles.saveButton]}
             >
               <Text style={modalStyles.saveButtonText}>
-                {ids.length ? 'Update' : 'Add'}
+                {ids.length ? t('documentModal.update') : t('documentModal.add')}
               </Text>
             </TouchableOpacity>
           </View>

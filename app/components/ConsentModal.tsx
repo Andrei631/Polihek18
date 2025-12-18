@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
@@ -11,6 +12,7 @@ interface ConsentModalProps {
 }
 
 export function ConsentModal({ visible, onAccept, onDecline }: ConsentModalProps) {
+  const { t } = useTranslation();
   
   return (
     <Modal
@@ -19,70 +21,45 @@ export function ConsentModal({ visible, onAccept, onDecline }: ConsentModalProps
       transparent={false} 
       onRequestClose={() => {
         // Prevent closing by back button
-        Alert.alert("Action Required", "You must accept the terms to use Sentinel.");
+        Alert.alert(t('consent.alertTitle'), t('consent.alertMessage'));
       }}
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Ionicons name="shield-checkmark-outline" size={48} color={COLORS.accent} />
-          <Text style={styles.title}>Legal Consent</Text>
-          <Text style={styles.subtitle}>Please review our terms of service and privacy policy.</Text>
+          <Text style={styles.title}>{t('consent.title')}</Text>
+          <Text style={styles.subtitle}>{t('consent.subtitle')}</Text>
         </View>
 
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.sectionHeader}>1. Disclaimer of Liability</Text>
-          <Text style={styles.text}>
-            Sentinel is an informational tool designed to assist in emergency preparedness and situational awareness. 
-            It is NOT a substitute for professional emergency services (911, 112, etc.) or official government alerts.
-            The developers of Sentinel assume no liability for any injuries, damages, or losses resulting from the use or misuse of this application.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.liabilityTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.liabilityBody')}</Text>
 
-          <Text style={styles.sectionHeader}>2. Data Accuracy</Text>
-          <Text style={styles.text}>
-            Hazard data, maps, and survival manuals are aggregated from third-party sources (e.g., USGS, GDACS, OpenStreetMap). 
-            While we strive for accuracy, we cannot guarantee the real-time precision or completeness of this data. 
-            Always verify information with official local authorities.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.accuracyTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.accuracyBody')}</Text>
 
-          <Text style={styles.sectionHeader}>3. AI Assistant Limitations</Text>
-          <Text style={styles.text}>
-            The Sentinel Local AI is an artificial intelligence model running on your device. 
-            It may occasionally generate incorrect or misleading information (hallucinations). 
-            Do not rely solely on the AI for critical medical or life-and-death decisions.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.aiTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.aiBody')}</Text>
 
-          <Text style={styles.sectionHeader}>4. Secret Vault & Data Security</Text>
-          <Text style={styles.text}>
-            The Secret Vault stores your sensitive documents (e.g., passports, medical records) locally on your device using encryption. 
-            We do not have access to these documents. You are solely responsible for securing your device. 
-            We are not liable for any unauthorized access to your data if your device is lost, stolen, or compromised.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.vaultTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.vaultBody')}</Text>
 
-          <Text style={styles.sectionHeader}>5. Privacy Policy</Text>
-          <Text style={styles.text}>
-            We prioritize your privacy. 
-            - Location data is processed locally for map rendering and hazard alerts.
-            - Secret Vault documents are encrypted and stored on your device.
-            - We do not sell your personal data to third parties.
-            - Account information (email) is used solely for authentication.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.privacyTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.privacyBody')}</Text>
 
-          <Text style={styles.sectionHeader}>6. Acceptance of Terms</Text>
-          <Text style={styles.text}>
-            By clicking I Accept, you acknowledge that you have read, understood, and agreed to these terms. 
-            You agree to use Sentinel responsibly and at your own risk.
-          </Text>
+          <Text style={styles.sectionHeader}>{t('consent.sections.acceptanceTitle')}</Text>
+          <Text style={styles.text}>{t('consent.sections.acceptanceBody')}</Text>
           
           <View style={{height: 40}} />
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.declineButton} onPress={onDecline}>
-            <Text style={styles.declineText}>DECLINE</Text>
+            <Text style={styles.declineText}>{t('consent.decline')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.acceptButton} onPress={onAccept}>
-            <Text style={styles.acceptText}>I ACCEPT</Text>
+            <Text style={styles.acceptText}>{t('consent.accept')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

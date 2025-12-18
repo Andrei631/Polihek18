@@ -6,11 +6,15 @@ import { doc, getDoc, getFirestore, serverTimestamp, updateDoc } from '@react-na
 import * as Location from "expo-location";
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   KeyboardAvoidingView,
   Modal,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   StyleSheet,
   Text,
@@ -24,10 +28,12 @@ import { COLORS } from '../constants/theme';
 import { ConsentModal } from './components/ConsentModal';
 import { CreditsModal } from './components/CreditsModal';
 import { useRAGContext } from './context/RAGContext';
+import { normalizeLanguage, persistLanguage, type SupportedLanguage } from './i18n/language';
 import { getLocalConsent, saveConsentLocally } from './utils/storage';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { isConnected } = useNetInfo();
   const { isDownloading: isModelDownloading, progress: modelProgress } = useRAGContext();
   
@@ -43,6 +49,58 @@ export default function Dashboard() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [creditsVisible, setCreditsVisible] = useState(false);
   const [consentVisible, setConsentVisible] = useState(false);
+  const [languageVisible, setLanguageVisible] = useState(false);
+
+  const LANGUAGE_ITEM_HEIGHT = 44;
+  const LANGUAGE_PICKER_HEIGHT = 220;
+  const languageListRef = React.useRef<FlatList<{ code: SupportedLanguage; label: string }>>(null);
+
+  const availableLanguages: Array<{ code: SupportedLanguage; label: string }> = [
+    { code: 'en', label: t('language.english') },
+    { code: 'ro', label: t('language.romanian') },
+    { code: 'de', label: t('language.german') },
+    { code: 'es', label: t('language.spanish') },
+    { code: 'fr', label: t('language.french') },
+    { code: 'it', label: t('language.italian') },
+    { code: 'pt', label: t('language.portuguese') },
+  ];
+
+  const selectedLanguage: SupportedLanguage = normalizeLanguage(i18n.language);
+
+  const applyLanguage = async (language: SupportedLanguage) => {
+    await persistLanguage(language);
+    await i18n.changeLanguage(language);
+  };
+
+  const changeLanguage = (language: SupportedLanguage, closeAfter = true) => {
+    void (async () => {
+      await applyLanguage(language);
+      if (closeAfter) setLanguageVisible(false);
+    })();
+  };
+
+  const onLanguageScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const index = Math.round(y / LANGUAGE_ITEM_HEIGHT);
+    const next = availableLanguages[index];
+    if (!next) return;
+    if (next.code === selectedLanguage) return;
+    void applyLanguage(next.code);
+  };
+
+  useEffect(() => {
+    if (!languageVisible) return;
+    const index = Math.max(0, availableLanguages.findIndex((l) => l.code === selectedLanguage));
+
+    const id = requestAnimationFrame(() => {
+      languageListRef.current?.scrollToOffset({
+        offset: index * LANGUAGE_ITEM_HEIGHT,
+        animated: false,
+      });
+    });
+
+    return () => cancelAnimationFrame(id);
+  }, [availableLanguages, languageVisible, selectedLanguage]);
 
   
   useEffect(() => {
@@ -99,7 +157,7 @@ export default function Dashboard() {
         hasConsented: true,
         consentDate: serverTimestamp()
       });
-    } catch (error) {
+    } catch {
       console.log("Firestore update failed (likely offline), but local consent saved.");
     }
   };
@@ -135,7 +193,7 @@ export default function Dashboard() {
         if (foundPack.metadata && foundPack.metadata.radius) {
            setDownloadedRadius(`${foundPack.metadata.radius}km`);
         } else {
-           setDownloadedRadius("Cached");
+             setDownloadedRadius(t('common.cached'));
         }
       }
     } catch (err) {
@@ -147,7 +205,7 @@ export default function Dashboard() {
     if (downloadedRadius || existingPack) {
         router.push({
             pathname: '/map',
-            params: { isPremium: "true", downloadedRadius: downloadedRadius || "Cached" }
+            params: { isPremium: "true", downloadedRadius: downloadedRadius || t('common.cached') }
         });
         return;
     }
@@ -157,11 +215,11 @@ export default function Dashboard() {
 
   const promptDeleteAndRedownload = () => {
       Alert.alert(
-          "Update Offline Map?",
-          "This will delete the existing map cache and download a new area.",
+        t('dashboard.alerts.updateOfflineMapTitle'),
+        t('dashboard.alerts.updateOfflineMapMessage'),
           [
-              { text: "Cancel", style: "cancel" },
-              { text: "Update", style: "destructive", onPress: async () => {
+          { text: t('common.cancel'), style: "cancel" },
+          { text: t('common.update'), style: "destructive", onPress: async () => {
                   setDownloadedRadius(null);
                   setExistingPack(null);
                   try {
@@ -172,7 +230,7 @@ export default function Dashboard() {
                             await OfflineManager.deletePack(pack.name);
                         }
                     }
-                    Alert.alert("Cache Cleared", "You can now download a new area.");
+                      Alert.alert(t('dashboard.alerts.cacheClearedTitle'), t('dashboard.alerts.cacheClearedMessage'));
                   } catch (e) {
                     console.log("Delete error", e);
                   }
@@ -186,7 +244,7 @@ export default function Dashboard() {
 
 
     if (isNaN(km) || km < 20) {
-        Alert.alert("Minimum Radius Required", "Please enter at least 20km to ensure safe coverage.");
+      Alert.alert(t('dashboard.alerts.minRadiusTitle'), t('dashboard.alerts.minRadiusMessage'));
         return;
     }
 
@@ -205,7 +263,7 @@ export default function Dashboard() {
 
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-            Alert.alert("Permission denied", "Location access is required.");
+          Alert.alert(t('dashboard.alerts.permissionDeniedTitle'), t('dashboard.alerts.permissionDeniedMessage'));
             setIsDownloading(false);
             return;
         }
@@ -261,22 +319,24 @@ export default function Dashboard() {
 
     } catch (err) {
         console.log("Download Error:", err);
-        Alert.alert("Download Failed", "Check internet connection or storage.");
+      Alert.alert(t('dashboard.alerts.downloadFailedTitle'), t('dashboard.alerts.downloadFailedMessage'));
         setIsDownloading(false);
     }
   };
 
   const getMapSubtitle = () => {
-    if (isDownloading) return `Caching ${radiusInput}km terrain packet...`;
-    if (existingPack || downloadedRadius) return `Offline Ready • ${downloadedRadius || "20km"}`;
-    return "Tap to configure offline download";
+    if (isDownloading) return t('dashboard.mapSubtitle.caching', { km: radiusInput });
+    if (existingPack || downloadedRadius) return t('dashboard.mapSubtitle.offlineReady', { radius: downloadedRadius || '20km' });
+    return t('dashboard.mapSubtitle.tapToConfigure');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       {isModelDownloading && (
         <View style={styles.modelDownloadContainer}>
-          <Text style={styles.modelDownloadText}>Downloading AI Models... {Math.round(((modelProgress.llm + modelProgress.embeddings) / 2) * 100)}%</Text>
+          <Text style={styles.modelDownloadText}>
+            {t('dashboard.modelDownload', { percent: Math.round(((modelProgress.llm + modelProgress.embeddings) / 2) * 100) })}
+          </Text>
           <View style={styles.progressBarBackground}>
             <View style={[styles.progressBarFill, { width: `${((modelProgress.llm + modelProgress.embeddings) / 2) * 100}%` }]} />
           </View>
@@ -284,26 +344,31 @@ export default function Dashboard() {
       )}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>DASHBOARD</Text>
+          <Text style={styles.headerTitle}>{t('dashboard.title')}</Text>
           <Text style={[styles.headerSubtitle, { color: isConnected ? COLORS.success : COLORS.danger }]}>
-            {isConnected ? "● NETWORK: ONLINE" : "○ NETWORK: OFFLINE"}
+            {isConnected ? t('dashboard.networkOnline') : t('dashboard.networkOffline')}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => setCreditsVisible(true)}>
-            <Ionicons name="information-circle-outline" size={24} color={COLORS.textSecondary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <TouchableOpacity onPress={() => setLanguageVisible(true)} accessibilityLabel={t('language.title')}>
+            <Ionicons name="language-outline" size={24} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setCreditsVisible(true)} accessibilityLabel={t('credits.title')}>
+              <Ionicons name="information-circle-outline" size={24} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.menuContainer}>
         <SentinelCard
-          title="Universal Crisis Manuals"
-          subtitle="Comprehensive guides for any survival condition"
+          title={t('dashboard.cards.manualsTitle')}
+          subtitle={t('dashboard.cards.manualsSubtitle')}
           icon="documents-outline"
           onPress={() => router.push('/SurvivalManuals')}
         />
         
         <SentinelCard
-          title="Map"
+          title={t('dashboard.cards.mapTitle')}
           subtitle={getMapSubtitle()}
           icon={isDownloading ? "cloud-download-outline" : "map-outline"}
           isPremium={true}
@@ -312,8 +377,8 @@ export default function Dashboard() {
         />
 
         <SentinelCard
-          title="Sentinel Local AI"
-          subtitle="On-device intelligence. Works 100% offline."
+          title={t('dashboard.cards.aiTitle')}
+          subtitle={t('dashboard.cards.aiSubtitle')}
           icon="hardware-chip-outline"
           isLocked={false}
           isPremium={true}
@@ -321,8 +386,8 @@ export default function Dashboard() {
         />
 
         <SentinelCard
-          title="Secret Vault"
-          subtitle="Encrypted documents. Stored locally on-device."
+          title={t('dashboard.cards.vaultTitle')}
+          subtitle={t('dashboard.cards.vaultSubtitle')}
           icon="lock-closed-outline" 
           isLocked={false}
           isPremium={true} 
@@ -331,10 +396,73 @@ export default function Dashboard() {
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={() => { signOut(getAuth()); router.replace('/'); }}>
-        <Text style={styles.logoutText}>DISCONNECT</Text>
+        <Text style={styles.logoutText}>{t('dashboard.logout')}</Text>
       </TouchableOpacity>
 
       <CreditsModal visible={creditsVisible} onClose={() => setCreditsVisible(false)} />
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={languageVisible}
+        onRequestClose={() => setLanguageVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.languageModalContent}>
+            <View style={styles.languageModalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Ionicons name="language-outline" size={22} color={COLORS.accent} />
+                <Text style={styles.languageModalTitle}>{t('language.title')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setLanguageVisible(false)} accessibilityLabel={t('common.close')}>
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.languagePickerContainer, { height: LANGUAGE_PICKER_HEIGHT }]}>
+              <View pointerEvents="none" style={[styles.languagePickerHighlight, { height: LANGUAGE_ITEM_HEIGHT }]} />
+
+              <FlatList
+                ref={languageListRef}
+                data={availableLanguages}
+                keyExtractor={(item) => item.code}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                snapToInterval={LANGUAGE_ITEM_HEIGHT}
+                decelerationRate="fast"
+                onMomentumScrollEnd={onLanguageScrollEnd}
+                onScrollEndDrag={onLanguageScrollEnd}
+                getItemLayout={(_, index) => ({
+                  length: LANGUAGE_ITEM_HEIGHT,
+                  offset: LANGUAGE_ITEM_HEIGHT * index,
+                  index,
+                })}
+                contentContainerStyle={{
+                  paddingVertical: (LANGUAGE_PICKER_HEIGHT - LANGUAGE_ITEM_HEIGHT) / 2,
+                }}
+                renderItem={({ item }) => {
+                  const isActive = item.code === selectedLanguage;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.languagePickerItem, { height: LANGUAGE_ITEM_HEIGHT }]}
+                      onPress={() => changeLanguage(item.code)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isActive }}
+                    >
+                      <Text style={[styles.languagePickerText, isActive && styles.languagePickerTextActive]}>
+                        {item.label}
+                      </Text>
+                      {isActive && (
+                        <Ionicons name="checkmark" size={16} color="#000" style={{ marginLeft: 8 }} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
       
       <ConsentModal 
         visible={consentVisible} 
@@ -355,11 +483,11 @@ export default function Dashboard() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Ionicons name="cloud-download" size={40} color={COLORS.accent} />
-              <Text style={styles.modalTitle}>OFFLINE CACHE</Text>
+              <Text style={styles.modalTitle}>{t('dashboard.offlineCache.title')}</Text>
             </View>
             
             <Text style={styles.modalDesc}>
-              Enter download radius (Min: 20km).
+              {t('dashboard.offlineCache.desc')}
             </Text>
 
             <View style={styles.inputRow}>
@@ -372,18 +500,18 @@ export default function Dashboard() {
                 onChangeText={setRadiusInput}
                 autoFocus
               />
-              <Text style={styles.kmText}>KM</Text>
+              <Text style={styles.kmText}>{t('dashboard.offlineCache.unitKm')}</Text>
             </View>
 
             <View style={styles.estimateContainer}>
-                <Text style={styles.estimateLabel}>ESTIMATED STORAGE:</Text>
+              <Text style={styles.estimateLabel}>{t('dashboard.offlineCache.estimatedStorage')}</Text>
                 <Text style={styles.estimateValue}>{estimatedSize}</Text>
             </View>
 
             {isDownloading ? (
               <View style={styles.downloadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.accent} />
-                <Text style={styles.downloadingText}>Downloading Terrain...</Text>
+                <Text style={styles.downloadingText}>{t('dashboard.offlineCache.downloading')}</Text>
               </View>
             ) : (
               <View style={styles.modalButtons}>
@@ -391,13 +519,13 @@ export default function Dashboard() {
                   style={[styles.modalBtn, styles.cancelBtn]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.cancelText}>CANCEL</Text>
+                  <Text style={styles.cancelText}>{t('dashboard.offlineCache.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.modalBtn, styles.confirmBtn]}
                   onPress={handleInitiateDownload}
                 >
-                  <Text style={styles.confirmText}>DOWNLOAD</Text>
+                  <Text style={styles.confirmText}>{t('dashboard.offlineCache.download')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -420,6 +548,59 @@ const styles = StyleSheet.create({
 
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' },
   modalContent: { backgroundColor: '#181818', padding: 24, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: '#333' },
+
+  languageModalContent: {
+    backgroundColor: '#181818',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  languageModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  languageModalTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  languagePickerContainer: {
+    position: 'relative',
+    backgroundColor: '#222',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+    overflow: 'hidden',
+  },
+  languagePickerHighlight: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    top: '50%',
+    marginTop: -22,
+    backgroundColor: COLORS.accent,
+    borderRadius: 12,
+  },
+  languagePickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  languagePickerText: {
+    color: COLORS.textSecondary,
+    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
+  languagePickerTextActive: {
+    color: '#000',
+  },
+
   modalHeader: { alignItems: 'center', marginBottom: 16 },
   modalTitle: { color: '#FFF', fontSize: 20, fontWeight: '900', marginTop: 10, letterSpacing: 2 },
   modalDesc: { color: COLORS.textSecondary, textAlign: 'center', marginBottom: 10 },

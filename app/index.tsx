@@ -1,37 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
-import { 
-  getAuth, 
-  onAuthStateChanged, 
-  fetchSignInMethodsForEmail, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword 
+import {
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail,
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword
 } from '@react-native-firebase/auth';
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  serverTimestamp 
+import {
+    doc,
+    getFirestore,
+    serverTimestamp,
+    setDoc
 } from '@react-native-firebase/firestore';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   
   
   const [email, setEmail] = useState('');
@@ -62,7 +64,7 @@ export default function LoginScreen() {
   
   const handlePreRegister = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Info', 'Please enter both email and password.');
+      Alert.alert(t('auth.alerts.missingInfoTitle'), t('auth.alerts.missingInfoMessage'));
       return;
     }
 
@@ -73,7 +75,7 @@ export default function LoginScreen() {
       const methods = await fetchSignInMethodsForEmail(auth, email);
       
       if (methods && methods.length > 0) {
-        Alert.alert('Account Exists', 'This email is already registered. Please log in.');
+        Alert.alert(t('auth.alerts.accountExistsTitle'), t('auth.alerts.accountExistsMessage'));
         setLoading(false);
         return;
       }
@@ -84,7 +86,7 @@ export default function LoginScreen() {
     } catch (error: any) {
       setLoading(false);
       if (error.code === 'auth/invalid-email') {
-        Alert.alert('Invalid Email', 'Please enter a valid email address.');
+        Alert.alert(t('auth.alerts.invalidEmailTitle'), t('auth.alerts.invalidEmailMessage'));
       } else {
         setShowPaywall(true); 
       }
@@ -111,8 +113,8 @@ export default function LoginScreen() {
     } catch (error: any) {
       setProcessingPayment(false);
       let msg = error.message;
-      if (error.code === 'auth/email-already-in-use') msg = "This email was taken while you were paying.";
-      Alert.alert('Registration Failed', msg);
+      if (error.code === 'auth/email-already-in-use') msg = t('auth.alerts.emailTakenDuringPayment');
+      Alert.alert(t('auth.alerts.registrationFailedTitle'), msg);
     }
   };
 
@@ -122,8 +124,8 @@ export default function LoginScreen() {
     try {
       const auth = getAuth();
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      Alert.alert('Login Failed', "Incorrect email or password.");
+    } catch {
+      Alert.alert(t('auth.alerts.loginFailedTitle'), t('auth.alerts.loginFailedMessage'));
     } finally {
       setLoading(false);
     }
@@ -145,13 +147,13 @@ export default function LoginScreen() {
             <Ionicons name="shield-checkmark" size={32} color={COLORS.accent} />
           </View>
           <Text style={styles.appTitle}>SENTINEL</Text>
-          <Text style={styles.appSubtitle}>LIFETIME ACCESS ACCOUNT</Text>
+          <Text style={styles.appSubtitle}>{t('auth.subtitle')}</Text>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Email Address"
+            placeholder={t('auth.emailPlaceholder')}
             placeholderTextColor={COLORS.textSecondary}
             value={email}
             onChangeText={setEmail}
@@ -160,7 +162,7 @@ export default function LoginScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('auth.passwordPlaceholder')}
             placeholderTextColor={COLORS.textSecondary}
             value={password}
             onChangeText={setPassword}
@@ -174,7 +176,7 @@ export default function LoginScreen() {
               onPress={handlePreRegister} 
               disabled={loading}
             >
-              {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.registerText}>CREATE ACCOUNT</Text>}
+              {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.registerText}>{t('auth.createAccount')}</Text>}
             </TouchableOpacity>
 
             {/* LOGIN BUTTON */}
@@ -183,7 +185,7 @@ export default function LoginScreen() {
               onPress={handleLogin} 
               disabled={loading}
             >
-              <Text style={styles.loginText}>LOGIN</Text>
+              <Text style={styles.loginText}>{t('auth.login')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -208,21 +210,21 @@ export default function LoginScreen() {
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Ionicons name="diamond-outline" size={60} color={COLORS.accent} style={{marginBottom: 20}} />
             
-            <Text style={styles.modalTitle}>UNLOCK SENTINEL</Text>
-            <Text style={styles.modalSubtitle}>ONE-TIME PAYMENT • LIFETIME ACCESS</Text>
+            <Text style={styles.modalTitle}>{t('paywall.title')}</Text>
+            <Text style={styles.modalSubtitle}>{t('paywall.subtitle')}</Text>
 
             <View style={styles.priceTag}>
               <Text style={styles.priceText}>$19.99</Text>
-              <Text style={styles.lifetimeText}> / Lifetime</Text>
+              <Text style={styles.lifetimeText}>{t('paywall.lifetimeSuffix')}</Text>
             </View>
 
             {/* Features List */}
             <View style={styles.featuresContainer}>
               {[
-                { icon: "cloud-download", title: "Unlimited Offline Maps", desc: "Download massive regions (100km+) & global data." },
-                { icon: "warning", title: "Live Hazard Alerts", desc: "Real-time sync of active disaster zones." },
-                { icon: "chatbubbles", title: "Sentinel AI Assistant", desc: "Unlimited queries for survival strategies." },
-                { icon: "shield-checkmark", title: "Cloud Backup", desc: "Securely sync your safe zones across devices." },
+                { icon: "cloud-download", title: t('paywall.features.offlineMaps.title'), desc: t('paywall.features.offlineMaps.desc') },
+                { icon: "warning", title: t('paywall.features.hazardAlerts.title'), desc: t('paywall.features.hazardAlerts.desc') },
+                { icon: "chatbubbles", title: t('paywall.features.ai.title'), desc: t('paywall.features.ai.desc') },
+                { icon: "shield-checkmark", title: t('paywall.features.backup.title'), desc: t('paywall.features.backup.desc') },
               ].map((item, index) => (
                 <View key={index} style={styles.featureItem}>
                   <View style={styles.featureIcon}>
@@ -240,7 +242,7 @@ export default function LoginScreen() {
           {/* Footer / Pay Button */}
           <View style={styles.modalFooter}>
             <Text style={styles.guaranteeText}>
-              <Ionicons name="lock-closed" size={12} color={COLORS.textSecondary} /> Secure SSL Payment
+              <Ionicons name="lock-closed" size={12} color={COLORS.textSecondary} /> {t('paywall.securePayment')}
             </Text>
             <TouchableOpacity 
               style={styles.payButton} 
@@ -250,7 +252,7 @@ export default function LoginScreen() {
               {processingPayment ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.payButtonText}>PAY $19.99 & CREATE ACCOUNT</Text>
+                <Text style={styles.payButtonText}>{t('paywall.payCta', { price: '19.99' })}</Text>
               )}
             </TouchableOpacity>
           </View>

@@ -1,0 +1,259 @@
+{
+  "common": {
+    "cancel": "Anulează",
+    "close": "Închide",
+    "cached": "Cache-uit",
+    "delete": "Șterge",
+    "unknown": "Necunoscut",
+    "update": "Actualizează",
+    "add": "Adaugă"
+  },
+
+  "auth": {
+    "subtitle": "CONT CU ACCES PE VIAȚĂ",
+    "emailPlaceholder": "Adresă de email",
+    "passwordPlaceholder": "Parolă",
+    "createAccount": "CREEAZĂ CONT",
+    "login": "AUTENTIFICARE",
+    "alerts": {
+      "missingInfoTitle": "Informații lipsă",
+      "missingInfoMessage": "Te rugăm să introduci emailul și parola.",
+      "accountExistsTitle": "Cont existent",
+      "accountExistsMessage": "Acest email este deja înregistrat. Te rugăm să te autentifici.",
+      "invalidEmailTitle": "Email invalid",
+      "invalidEmailMessage": "Te rugăm să introduci o adresă de email validă.",
+      "registrationFailedTitle": "Înregistrare eșuată",
+      "emailTakenDuringPayment": "Acest email a fost folosit în timp ce efectuai plata.",
+      "loginFailedTitle": "Autentificare eșuată",
+      "loginFailedMessage": "Email sau parolă incorecte."
+    }
+  },
+
+  "language": {
+    "title": "Limbă",
+    "english": "Engleză",
+    "romanian": "Română",
+    "german": "Germană",
+    "spanish": "Spaniolă",
+    "french": "Franceză",
+    "italian": "Italiană",
+    "portuguese": "Portugheză"
+  },
+
+  "paywall": {
+    "title": "DEBLOCHEAZĂ SENTINEL",
+    "subtitle": "PLATĂ UNICĂ • ACCES PE VIAȚĂ",
+    "lifetimeSuffix": " / Pe viață",
+    "securePayment": "Plată securizată SSL",
+    "payCta": "PLĂTEȘTE ${{price}} & CREEAZĂ CONT",
+    "features": {
+      "offlineMaps": {
+        "title": "Hărți offline nelimitate",
+        "desc": "Descarcă regiuni mari (100km+) și date globale."
+      },
+      "hazardAlerts": {
+        "title": "Alerte de pericol live",
+        "desc": "Sincronizare în timp real a zonelor active de dezastru."
+      },
+      "ai": {
+        "title": "Asistentul AI Sentinel",
+        "desc": "Întrebări nelimitate pentru strategii de supraviețuire."
+      },
+      "backup": {
+        "title": "Backup în cloud",
+        "desc": "Sincronizează în siguranță zonele tale între dispozitive."
+      }
+    }
+  },
+
+  "dashboard": {
+    "title": "PANOU",
+    "networkOnline": "● REȚEA: ONLINE",
+    "networkOffline": "○ REȚEA: OFFLINE",
+    "logout": "DECONECTARE",
+    "modelDownload": "Se descarcă modelele AI... {{percent}}%",
+    "cards": {
+      "manualsTitle": "Manuale universale de criză",
+      "manualsSubtitle": "Ghiduri complete pentru orice situație de supraviețuire",
+      "mapTitle": "Hartă",
+      "aiTitle": "Sentinel Local AI",
+      "aiSubtitle": "Inteligență pe dispozitiv. Funcționează 100% offline.",
+      "vaultTitle": "Seif Secret",
+      "vaultSubtitle": "Documente criptate. Stocate local pe dispozitiv."
+    },
+    "mapSubtitle": {
+      "caching": "Se cache-uiește pachetul de teren pe {{km}}km...",
+      "offlineReady": "Gata offline • {{radius}}",
+      "tapToConfigure": "Atinge pentru a configura descărcarea offline"
+    },
+    "offlineCache": {
+      "title": "CACHE OFFLINE",
+      "desc": "Introdu raza de descărcare (Min: 20km).",
+      "unitKm": "KM",
+      "estimatedStorage": "STOCAR﻿E ESTIMATĂ:",
+      "downloading": "Se descarcă terenul...",
+      "cancel": "ANULEAZĂ",
+      "download": "DESCARCĂ"
+    },
+    "alerts": {
+      "updateOfflineMapTitle": "Actualizezi harta offline?",
+      "updateOfflineMapMessage": "Asta va șterge cache-ul existent și va descărca o zonă nouă.",
+      "cacheClearedTitle": "Cache șters",
+      "cacheClearedMessage": "Poți descărca acum o zonă nouă.",
+      "minRadiusTitle": "Rază minimă necesară",
+      "minRadiusMessage": "Introdu cel puțin 20km pentru acoperire sigură.",
+      "permissionDeniedTitle": "Permisiune refuzată",
+      "permissionDeniedMessage": "Este necesar accesul la locație.",
+      "downloadFailedTitle": "Descărcare eșuată",
+      "downloadFailedMessage": "Verifică internetul sau spațiul de stocare."
+    }
+  },
+
+  "map": {
+    "headerTitle": "Harta Sentinel",
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "V"
+    },
+    "status": {
+      "offlineCache": "Cache offline: {{radius}}",
+      "onlineMode": "Mod online",
+      "hazardsActive": "• Pericole active",
+      "hazardsHidden": "• Pericole ascunse"
+    },
+    "hazard": {
+      "defaultType": "Pericol",
+      "unknownAlert": "Alertă necunoscută"
+    },
+    "hazardCard": {
+      "typeFallback": "PERICOL",
+      "severityPrefix": "SEVERITATE:",
+      "severityUnknown": "NECUNOSCUT",
+      "lat": "Lat",
+      "lng": "Lng"
+    }
+  },
+
+  "vault": {
+    "title": "Seif Secret",
+    "viewerTitle": "Vizualizator document",
+    "info": "Fișierele sunt criptate cu AES-256 și sunt stocate doar pe acest dispozitiv.",
+    "processing": "Se procesează criptarea...",
+    "upload": "Încarcă",
+    "encryptedStored": "Criptat & stocat",
+    "alerts": {
+      "securedTitle": "Securizat",
+      "securedMessage": "Document criptat și stocat local.",
+      "errorTitle": "Eroare",
+      "encryptFailed": "Criptarea documentului a eșuat.",
+      "decryptFailed": "Nu s-a putut decripta fișierul.",
+      "shareFailed": "Nu s-a putut partaja fișierul",
+      "loadPdfFailed": "Nu s-a putut încărca PDF-ul",
+      "deleteTitle": "Ștergi documentul",
+      "deleteMessage": "Acest lucru va elimina definitiv fișierul criptat."
+    },
+    "docs": {
+      "1": { "title": "Act de identitate", "subtitle": "Pașaport, permis, carte de identitate" },
+      "2": { "title": "Dosar medical", "subtitle": "Rețete, grupă sanguină, istoric" },
+      "3": { "title": "Polițe de asigurare", "subtitle": "Locuință, auto, viață, sănătate" },
+      "4": { "title": "Documente de proprietate", "subtitle": "Acte, contracte, titluri" },
+      "5": { "title": "Documente financiare", "subtitle": "Conturi bancare, carduri" },
+      "6": { "title": "Documente legale", "subtitle": "Testamente, procuri" }
+    }
+  },
+
+  "manuals": {
+    "loading": "Se încarcă manualele...",
+    "title": "Manuale de supraviețuire",
+    "searchPlaceholder": "Caută în manuale (Semantic)...",
+    "warningSigns": "Semne de avertizare",
+    "protectiveMeasures": "Măsuri de protecție"
+  },
+
+  "chat": {
+    "headerSubtitle": "SISTEM DE RĂSPUNS LA CRIZE",
+    "systemPrompt": "Ești Sentinel, un asistent expert în supraviețuire.\nScopul tău este să oferi sfaturi clare, concise și care pot salva vieți în situații de urgență.\nPrioritizează siguranța, acuratețea și calmul.\nFolosește contextul furnizat pentru a răspunde întrebărilor.",
+    "alerts": {
+      "errorTitle": "Eroare",
+      "searchFailed": "Nu s-a putut căuta în documente. Te rugăm să încerci din nou."
+    },
+    "loading": {
+      "title": "Se încarcă modelele...",
+      "llmProgress": "Progres descărcare LLM: {{percent}}%",
+      "embeddingsProgress": "Progres descărcare embeddings: {{percent}}%",
+      "downloadingLlm": "Se descarcă modelul LLM...",
+      "initializing": "Se inițializează modelele..."
+    },
+    "empty": {
+      "title": "Salut! 👋",
+      "subtitle": "Cu ce te pot ajuta?"
+    },
+    "input": {
+      "placeholder": "Scrie mesajul...",
+      "send": "Trimite"
+    },
+    "thinking": "Se gândește..."
+  },
+
+  "documentModal": {
+    "titleUpdate": "Actualizează documentul",
+    "titleAdd": "Adaugă document",
+    "placeholder": "Introdu textul documentului aici...",
+    "cancel": "Anulează",
+    "update": "Actualizează",
+    "add": "Adaugă"
+  },
+
+  "credits": {
+    "title": "Credite & atribuiri",
+    "intro": "Sentinel este construit folosind software open-source și API-uri publice gratuite. Mulțumim următorilor furnizori:",
+    "sections": {
+      "hazardApis": "API-uri date pericole",
+      "mapping": "Hărți & locație",
+      "ai": "Inteligență & AI",
+      "infrastructure": "Infrastructură",
+      "content": "Conținut"
+    },
+    "items": {
+      "gdacs": "Sistem global de alertare și coordonare a dezastrelor",
+      "usgs": "Date despre cutremure în timp real",
+      "eonet": "Tracker de evenimente naturale (Earth Observatory)",
+      "copernicus": "Serviciu de management al urgențelor",
+      "reliefweb": "Serviciu de informații umanitare",
+      "emsc": "Centrul seismologic Euro-Mediteranean",
+      "maplibre": "Bibliotecă de hărți open-source",
+      "osm": "Contribuitori de date pentru hartă",
+      "executorch": "Inferență AI pe dispozitiv (PyTorch)",
+      "rag": "Generare augmentată cu căutare locală (RAG)",
+      "firebase": "Backend și funcții cloud",
+      "expo": "Framework React Native",
+      "manuals": "Adaptat după protocoale standard de siguranță (FEMA, Crucea Roșie etc.)"
+    },
+    "footer": "Sentinel v1.0"
+  },
+
+  "consent": {
+    "alertTitle": "Acțiune necesară",
+    "alertMessage": "Trebuie să accepți termenii pentru a folosi Sentinel.",
+    "title": "Consimțământ legal",
+    "subtitle": "Te rugăm să citești termenii de utilizare și politica de confidențialitate.",
+    "sections": {
+      "liabilityTitle": "1. Declarație de neasumare a răspunderii",
+      "liabilityBody": "Sentinel este un instrument informativ, conceput pentru a ajuta la pregătirea pentru situații de urgență și la conștientizarea situației. NU înlocuiește serviciile profesioniste de urgență (112 etc.) sau alertele oficiale ale autorităților. Dezvoltatorii Sentinel nu își asumă răspunderea pentru răniri, daune sau pierderi rezultate din folosirea sau utilizarea greșită a aplicației.",
+      "accuracyTitle": "2. Acuratețea datelor",
+      "accuracyBody": "Datele despre pericole, hărțile și manualele de supraviețuire sunt agregate din surse terțe (de ex. USGS, GDACS, OpenStreetMap). Deși urmărim acuratețea, nu putem garanta precizia în timp real sau caracterul complet al acestor date. Verifică întotdeauna informațiile din surse oficiale locale.",
+      "aiTitle": "3. Limitările asistentului AI",
+      "aiBody": "Sentinel Local AI este un model de inteligență artificială care rulează pe dispozitivul tău. Uneori poate genera informații incorecte sau înșelătoare. Nu te baza exclusiv pe AI pentru decizii critice medicale sau de viață și de moarte.",
+      "vaultTitle": "4. Secret Vault & securitatea datelor",
+      "vaultBody": "Secret Vault stochează local pe dispozitiv documentele tale sensibile (de ex. pașapoarte, dosare medicale) folosind criptare. Nu avem acces la aceste documente. Ești singurul responsabil pentru securizarea dispozitivului. Nu suntem răspunzători pentru acces neautorizat la date dacă dispozitivul este pierdut, furat sau compromis.",
+      "privacyTitle": "5. Politica de confidențialitate",
+      "privacyBody": "Prioritizăm confidențialitatea.\n- Datele de locație sunt procesate local pentru randarea hărții și alerte de pericol.\n- Documentele din Secret Vault sunt criptate și stocate pe dispozitiv.\n- Nu vindem datele tale personale către terți.\n- Informațiile contului (email) sunt folosite doar pentru autentificare.",
+      "acceptanceTitle": "6. Acceptarea termenilor",
+      "acceptanceBody": "Apăsând Accept, confirmi că ai citit, ai înțeles și ai acceptat acești termeni. Ești de acord să folosești Sentinel responsabil și pe propriul risc."
+    },
+    "decline": "REFUZ",
+    "accept": "ACCEPT"
+  }
+}

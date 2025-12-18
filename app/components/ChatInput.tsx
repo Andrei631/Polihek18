@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
     StyleSheet,
     Text,
@@ -22,6 +23,8 @@ export function ChatInput({
   isGenerating,
   isReady,
 }: ChatInputProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={chatInputStyles.container}>
       <View style={chatInputStyles.inputRow}>
@@ -29,7 +32,7 @@ export function ChatInput({
           style={chatInputStyles.input}
           value={message}
           onChangeText={onMessageChange}
-          placeholder="Type your message..."
+          placeholder={t('chat.input.placeholder')}
           placeholderTextColor={COLORS.textSecondary}
           multiline
           editable={!isGenerating && isReady}
@@ -43,7 +46,7 @@ export function ChatInput({
           ]}
           disabled={!isReady || isGenerating || !message.trim()}
         >
-          <Text style={chatInputStyles.sendButtonText}>Send</Text>
+          <Text style={chatInputStyles.sendButtonText}>{t('chat.input.send')}</Text>
         </TouchableOpacity>
       </View>
     </View>

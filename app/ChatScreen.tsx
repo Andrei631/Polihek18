@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     KeyboardAvoidingView,
@@ -8,19 +9,15 @@ import {
     Text,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Message, useRAG } from 'react-native-rag';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatInput } from './components/ChatInput';
 import { MessagesList } from './components/MessagesList';
 import { COLORS } from './constants/colors';
 import { useRAGContext } from './context/RAGContext';
 
-const SYSTEM_PROMPT = `You are Sentinel, an expert survival assistant.
-Your goal is to provide clear, concise, and life-saving advice during emergencies.
-Prioritize safety, accuracy, and calmness.
-Use the provided context to answer questions.`;
-
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const { vectorStore, llm, isReady, progress } = useRAGContext();
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,8 +48,9 @@ export default function ChatScreen() {
     setIsSearching(true);
 
     try {
+      const systemPrompt = t('chat.systemPrompt');
       const response = await rag.generate({
-        input: `${SYSTEM_PROMPT}\n\nQuestion: ${newMessage.content}`,
+        input: `${systemPrompt}\n\nQuestion: ${newMessage.content}`,
         augmentedGeneration: true,
       });
       
@@ -62,7 +60,7 @@ export default function ChatScreen() {
       ]);
     } catch (error) {
       console.error('Error searching documents:', error);
-      Alert.alert('Error', 'Failed to search documents. Please try again.');
+      Alert.alert(t('chat.alerts.errorTitle'), t('chat.alerts.searchFailed'));
     } finally {
       setIsSearching(false);
     }
@@ -75,7 +73,7 @@ export default function ChatScreen() {
           <Ionicons name="shield" size={40} color={COLORS.accent} />
         </View>
         <Text style={styles.headerTitle}>SENTINEL</Text>
-        <Text style={styles.headerSubtitle}>CRISIS RESPONSE SYSTEM</Text>
+        <Text style={styles.headerSubtitle}>{t('chat.headerSubtitle')}</Text>
       </View>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
@@ -90,25 +88,25 @@ export default function ChatScreen() {
         ) : !isReady ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>
-              Loading Models...
+              {t('chat.loading.title')}
             </Text>
             <Text style={styles.progressText}>
-              LLM Download Progress: {(progress.llm * 100).toFixed(2)}%
+              {t('chat.loading.llmProgress', { percent: (progress.llm * 100).toFixed(2) })}
             </Text>
             <Text style={styles.progressText}>
-              Embeddings Download Progress: {(progress.embeddings * 100).toFixed(2)}%
+              {t('chat.loading.embeddingsProgress', { percent: (progress.embeddings * 100).toFixed(2) })}
             </Text>
             <Text style={styles.statusText}>
               {progress.llmDownload < 1
-                ? 'Downloading LLM model...'
-                : 'Initializing models...'}
+                ? t('chat.loading.downloadingLlm')
+                : t('chat.loading.initializing')}
             </Text>
           </View>
         ) : (
           <View style={styles.emptyStateContainer}>
-            <Text style={styles.emptyStateTitle}>Hello! 👋</Text>
+            <Text style={styles.emptyStateTitle}>{t('chat.empty.title')}</Text>
             <Text style={styles.emptyStateSubtitle}>
-              What can I help you with?
+              {t('chat.empty.subtitle')}
             </Text>
           </View>
         )}

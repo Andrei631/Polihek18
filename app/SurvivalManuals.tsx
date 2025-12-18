@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, FlatList, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './constants/colors';
 import { useRAGContext } from './context/RAGContext';
 import { Manual } from './data/manuals';
@@ -12,6 +13,7 @@ interface SurvivalManualsProps {
 
 export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps) {
   const { vectorStore, manuals } = useRAGContext();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   
   const [filteredData, setFilteredData] = useState<(Manual & { category: string })[]>([]);
@@ -96,15 +98,15 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
       {manuals.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={styles.loadingText}>Loading manuals...</Text>
+          <Text style={styles.loadingText}>{t('manuals.loading')}</Text>
         </View>
       ) : (
         <>
-          <Text style={styles.title}>Survival Manuals</Text>
+          <Text style={styles.title}>{t('manuals.title')}</Text>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search manuals (Semantic)..."
+          placeholder={t('manuals.searchPlaceholder')}
           placeholderTextColor={COLORS.textSecondary}
           value={searchQuery}
           onChangeText={handleSearch}
@@ -156,7 +158,7 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Ionicons name="warning-outline" size={20} color={COLORS.accent} />
-                      <Text style={styles.sectionTitle}>Warning Signs</Text>
+                      <Text style={styles.sectionTitle}>{t('manuals.warningSigns')}</Text>
                     </View>
                     {selectedManual.warning_signs_and_conditions.map((sign, index) => (
                       <View key={`sign-${index}`} style={styles.listItem}>
@@ -169,7 +171,7 @@ export default function SurvivalManuals({ onSelectManual }: SurvivalManualsProps
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.success} />
-                      <Text style={styles.sectionTitle}>Protective Measures</Text>
+                      <Text style={styles.sectionTitle}>{t('manuals.protectiveMeasures')}</Text>
                     </View>
                     {selectedManual.protective_measures.map((measure, index) => (
                       <View key={`measure-${index}`} style={styles.listItem}>
